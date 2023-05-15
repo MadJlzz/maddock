@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/MadJlzz/maddock/internal/module"
 	"log"
 	"os"
 	"os/exec"
@@ -76,8 +77,26 @@ func (a *Agent) pollRecipe(ctx context.Context) {
 func (a *Agent) Start(ctx context.Context) {
 	log.Println("starting agent...")
 	if err := a.initRecipe(ctx); err != nil {
-		panic(err)
+		log.Fatalf("could not clone recipe. %v", err)
 	}
 	a.pollRecipe(ctx)
+	// Check if the configuration changed. If the configuration changed we need to apply it.
+	// We need to store the state of the current infrastructure.
+	// 	An idea is to run a verify() method that checks the actual status, encode and store the result.
+	//  Next time a poll() occurs, if this operation returns a different value ; it means we have to perform the do() changes.
+	// When we apply the configuration we need to put the poll on hold to avoid re-triggering a do() by mistake.
+	//
+	//
+	// To conclude:
+	//   Capability to store a state. First implementation should be in-memory. Maybe a file is required to not replay on startup.
+	//   A module (for e.g. KernelParameters) is equipped of a verify() and do() method.
+	//   An orchestrator should call the right module
+	kernelModule := module.NewKernelModule([]module.KernelParameter{
+		{Key: "fs/inotify/max_user_instances", Value: "129"},
+	})
+	if ok := kernelModule.StateChanged(); ok {
+		_ = kernelModule.Do()
+	}
+
 	a.pollWg.Wait()
 }
