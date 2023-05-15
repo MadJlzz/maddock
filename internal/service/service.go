@@ -97,6 +97,9 @@ func (a *Agent) Start(ctx context.Context) {
 	if ok := kernelModule.StateChanged(); ok {
 		_ = kernelModule.Do()
 	}
+	if ok := kernelModule.StateChanged(); ok {
+		_ = kernelModule.Do()
+	}
 
 	a.pollWg.Wait()
 }

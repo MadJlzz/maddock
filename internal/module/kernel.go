@@ -3,6 +3,7 @@ package module
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/MadJlzz/maddock/internal/state"
 	"golang.org/x/exp/slices"
 	"log"
 )
@@ -19,16 +20,21 @@ func (kp *KernelParameter) Base64Encode() string {
 
 type KernelModule struct {
 	// StateService ==> for being able to retrieve the state when needed.
-	parameters []KernelParameter
+	stateService *state.StateService
+	parameters   []KernelParameter
 }
 
 func NewKernelModule(parameters []KernelParameter) *KernelModule {
-	return &KernelModule{parameters: parameters}
+	// TODO: if we don't pass the state service, we could run the agent on memory automatically.
+	return &KernelModule{
+		stateService: state.MemStateService,
+		parameters:   parameters,
+	}
 }
 
 func (k *KernelModule) StateChanged() bool {
 	// Load the hashes from the state.
-	var stateHashes []string
+	stateHashes := k.stateService.Get("kernel_module")
 	if len(stateHashes) != len(k.parameters) {
 		return true
 	}
@@ -42,5 +48,15 @@ func (k *KernelModule) StateChanged() bool {
 
 func (k *KernelModule) Do() error {
 	log.Println("Module state has changed, rerunning everything.")
+
+	// Foreach KernelParameters, we apply it and insert it to the state.
+	for _, p := range k.parameters {
+		kp := KernelParameter{
+			Key:   p.Key,
+			Value: p.Value,
+		}
+		k.stateService.Insert("kernel_module", kp.Base64Encode())
+
+	}
 	return nil
 }
