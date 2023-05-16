@@ -1,3 +1,6 @@
+vcsPollDelay: 30s
+
 vcs:
-  uri: file:///home/jklaer/Projects/sandbox/maddock/test/cfg-repo
+  uri: file:///home/madjlzz/Projects/maddock/test/cfg-repo
   ref: main
+  destination: /tmp/maddock-cfg

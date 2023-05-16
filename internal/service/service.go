@@ -29,16 +29,14 @@ func New(cfg *AgentConfiguration) (*Agent, error) {
 }
 
 func (a *Agent) initRecipe(ctx context.Context) error {
-	const destination = "/tmp/maddock-cfg"
-
 	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*100)
 	defer cancel()
 
-	if _, err := os.Stat(destination); os.IsNotExist(err) {
+	if _, err := os.Stat(a.cfg.Vcs.Destination); os.IsNotExist(err) {
 		log.Printf("cloning recipe %s using reference %s\n", a.cfg.Vcs.URI, a.cfg.Vcs.Ref)
 		cmd := exec.CommandContext(
 			ctx, a.gitPath,
-			"clone", a.cfg.Vcs.URI, destination,
+			"clone", a.cfg.Vcs.URI, a.cfg.Vcs.Destination,
 			"--branch", a.cfg.Vcs.Ref,
 		)
 		if err = cmd.Run(); err != nil {
@@ -49,19 +47,17 @@ func (a *Agent) initRecipe(ctx context.Context) error {
 }
 
 func (a *Agent) pollRecipe(ctx context.Context) {
-	const destination = "/tmp/maddock-cfg"
-
 	a.pollWg.Add(1)
 	go func() {
 		for {
 			select {
-			case <-time.After(30 * time.Second):
+			case <-time.After(a.cfg.VcsPollDelay):
 				log.Printf("updating recipe %s using reference %s\n", a.cfg.Vcs.URI, a.cfg.Vcs.Ref)
 				cmd := exec.CommandContext(
 					ctx, a.gitPath,
 					"reset", "--hard", a.cfg.Vcs.Ref,
 				)
-				cmd.Dir = destination
+				cmd.Dir = a.cfg.Vcs.Destination
 				if err := cmd.Run(); err != nil {
 					log.Printf("could not poll recipe. %v", err)
 				}
