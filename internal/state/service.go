@@ -1,24 +1,25 @@
 package state
 
-// This file will contains handy methods to fetch states in the other packages.
-
-type StateService struct {
-	backend StateStorage
+type Service struct {
+	backend Storage
 }
 
-func NewStateService(backend StateStorage) *StateService {
-	return &StateService{backend: backend}
+func NewStateService(storageType StorageType) *Service {
+	var backend Storage
+	switch storageType {
+	default:
+		backend = newInMemory()
+	}
+	return &Service{backend: backend}
 }
 
-func (ss *StateService) Get(moduleName string) []string {
+func (ss *Service) Get(moduleName string) []string {
 	return ss.backend.Get(moduleName)
 }
 
-func (ss *StateService) Insert(moduleName string, hash string) {
+func (ss *Service) Insert(moduleName string, hash string) {
 	ss.backend.Insert(moduleName, hash)
 }
 
-// TODO: most probably the key will be the module name and value a list of hashes.
-var MemStateService = NewStateService(
-	&InMemory{map[string][]string{"bob": []string{"test"}}},
-)
+// TODO: most probably the key will be the modules name and value a list of hashes.
+var MemStateService = NewStateService(InMemory)

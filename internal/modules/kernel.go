@@ -1,4 +1,4 @@
-package module
+package modules
 
 import (
 	"encoding/base64"
@@ -18,22 +18,20 @@ func (kp *KernelParameter) Base64Encode() string {
 	return base64.StdEncoding.EncodeToString(b)
 }
 
-type KernelModule struct {
-	// StateService ==> for being able to retrieve the state when needed.
-	stateService *state.StateService
+type KernelParameterModule struct {
+	stateService *state.Service
 	parameters   []KernelParameter
 }
 
-func NewKernelModule(parameters []KernelParameter) *KernelModule {
-	// TODO: if we don't pass the state service, we could run the agent on memory automatically.
-	return &KernelModule{
+func NewKernelModule(parameters []KernelParameter) *KernelParameterModule {
+	// TODO: if we don't pass the state core, we could run the agent on memory automatically.
+	return &KernelParameterModule{
 		stateService: state.MemStateService,
 		parameters:   parameters,
 	}
 }
 
-func (k *KernelModule) StateChanged() bool {
-	// Load the hashes from the state.
+func (k *KernelParameterModule) Dirty() bool {
 	stateHashes := k.stateService.Get("kernel_module")
 	if len(stateHashes) != len(k.parameters) {
 		return true
@@ -46,9 +44,8 @@ func (k *KernelModule) StateChanged() bool {
 	return false
 }
 
-func (k *KernelModule) Do() error {
+func (k *KernelParameterModule) Do() error {
 	log.Println("Module state has changed, rerunning everything.")
-
 	// Foreach KernelParameters, we apply it and insert it to the state.
 	for _, p := range k.parameters {
 		kp := KernelParameter{
@@ -56,7 +53,6 @@ func (k *KernelModule) Do() error {
 			Value: p.Value,
 		}
 		k.stateService.Insert("kernel_module", kp.Base64Encode())
-
 	}
 	return nil
 }

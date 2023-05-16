@@ -1,4 +1,4 @@
-package service
+package core
 
 import (
 	"gopkg.in/yaml.v3"

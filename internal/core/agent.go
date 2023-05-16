@@ -1,8 +1,8 @@
-package service
+package core
 
 import (
 	"context"
-	"github.com/MadJlzz/maddock/internal/module"
+	"github.com/MadJlzz/maddock/internal/modules"
 	"log"
 	"os"
 	"os/exec"
@@ -16,7 +16,7 @@ type Agent struct {
 	gitPath string
 }
 
-func New(cfg *AgentConfiguration) (*Agent, error) {
+func NewAgent(cfg *AgentConfiguration) (*Agent, error) {
 	gitPath, err := exec.LookPath("git")
 	if err != nil {
 		return nil, err
@@ -46,28 +46,46 @@ func (a *Agent) initRecipe(ctx context.Context) error {
 	return nil
 }
 
-func (a *Agent) pollRecipe(ctx context.Context) {
-	a.pollWg.Add(1)
-	go func() {
-		for {
-			select {
-			case <-time.After(a.cfg.VcsPollDelay):
-				log.Printf("updating recipe %s using reference %s\n", a.cfg.Vcs.URI, a.cfg.Vcs.Ref)
-				cmd := exec.CommandContext(
-					ctx, a.gitPath,
-					"reset", "--hard", a.cfg.Vcs.Ref,
-				)
-				cmd.Dir = a.cfg.Vcs.Destination
-				if err := cmd.Run(); err != nil {
-					log.Printf("could not poll recipe. %v", err)
-				}
-			case <-ctx.Done():
-				log.Printf("stop polling properly...")
-				a.pollWg.Done()
-				return
+func (a *Agent) pollRecipe(ctx context.Context, pollEventsChan chan<- struct{}) {
+	for {
+		select {
+		case <-time.After(a.cfg.VcsPollDelay):
+			log.Printf("updating recipe %s using reference %s\n", a.cfg.Vcs.URI, a.cfg.Vcs.Ref)
+			cmd := exec.CommandContext(
+				ctx, a.gitPath,
+				"reset", "--hard", a.cfg.Vcs.Ref,
+			)
+			cmd.Dir = a.cfg.Vcs.Destination
+			if err := cmd.Run(); err != nil {
+				log.Printf("could not poll recipe. %v", err)
 			}
+			pollEventsChan <- struct{}{}
+		case <-ctx.Done():
+			log.Printf("stop polling properly...")
+			a.pollWg.Done()
+			close(pollEventsChan)
+			return
 		}
-	}()
+	}
+}
+
+func (a *Agent) executeRecipe(ctx context.Context, pollEventsChan <-chan struct{}) {
+	// TODO: will be better to have the recipe passed.
+	kernelModule := modules.NewKernelModule([]modules.KernelParameter{
+		{Key: "fs/inotify/max_user_instances", Value: "129"},
+	})
+	for {
+		select {
+		case <-pollEventsChan:
+			log.Printf("a new poll event just occured!")
+			if ok := kernelModule.Dirty(); ok {
+				_ = kernelModule.Do()
+			}
+		case <-ctx.Done():
+			log.Printf("stop recipe execution properly...")
+			return
+		}
+	}
 }
 
 func (a *Agent) Start(ctx context.Context) {
@@ -75,7 +93,11 @@ func (a *Agent) Start(ctx context.Context) {
 	if err := a.initRecipe(ctx); err != nil {
 		log.Fatalf("could not clone recipe. %v", err)
 	}
-	a.pollRecipe(ctx)
+	pollEventsChan := make(chan struct{})
+	a.pollWg.Add(1)
+
+	go a.pollRecipe(ctx, pollEventsChan)
+	go a.executeRecipe(ctx, pollEventsChan)
 	// Check if the configuration changed. If the configuration changed we need to apply it.
 	// We need to store the state of the current infrastructure.
 	// 	An idea is to run a verify() method that checks the actual status, encode and store the result.
@@ -85,17 +107,7 @@ func (a *Agent) Start(ctx context.Context) {
 	//
 	// To conclude:
 	//   Capability to store a state. First implementation should be in-memory. Maybe a file is required to not replay on startup.
-	//   A module (for e.g. KernelParameters) is equipped of a verify() and do() method.
-	//   An orchestrator should call the right module
-	kernelModule := module.NewKernelModule([]module.KernelParameter{
-		{Key: "fs/inotify/max_user_instances", Value: "129"},
-	})
-	if ok := kernelModule.StateChanged(); ok {
-		_ = kernelModule.Do()
-	}
-	if ok := kernelModule.StateChanged(); ok {
-		_ = kernelModule.Do()
-	}
-
+	//   A modules (for e.g. KernelParameters) is equipped of a verify() and do() method.
+	//   An orchestrator should call the right modules
 	a.pollWg.Wait()
 }

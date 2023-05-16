@@ -1,4 +1,4 @@
-vcsPollDelay: 30s
+vcsPollDelay: 5s
 
 vcs:
   uri: file:///home/madjlzz/Projects/maddock/test/cfg-repo

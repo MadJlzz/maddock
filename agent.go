@@ -2,19 +2,19 @@ package main
 
 import (
 	"context"
-	"github.com/MadJlzz/maddock/internal/service"
+	"github.com/MadJlzz/maddock/internal/core"
 	"log"
 	"os"
 	"os/signal"
 )
 
 func main() {
-	cfg, err := service.NewAgentConfiguration("configs/maddock.yml")
+	cfg, err := core.NewAgentConfiguration("configs/maddock.yml")
 	if err != nil {
 		log.Fatalf("could not load agent configuration. %v", err)
 	}
 
-	agent, err := service.New(cfg)
+	agent, err := core.NewAgent(cfg)
 	if err != nil {
 		log.Fatalf("could not create agent. %v", err)
 	}
