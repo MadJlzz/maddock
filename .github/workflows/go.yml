@@ -1,0 +1,76 @@
+name: maddock
+
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - main
+  pull_request:
+permissions:
+  contents: read
+
+jobs:
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+          cache: false
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build application
+        run: go build -v .
+
+      - name: Run tests
+        run: go test -v ./...
+
+      - name: Save build output
+        uses: actions/cache/save@v3
+        with:
+          path: maddock
+          key: maddock-${{ github.run_id }}-${{ github.run_number }}
+
+  release:
+    if: startsWith(github.event.ref, 'refs/tags/v')
+    needs:
+      - lint
+      - build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download build output
+        uses: actions/cache/restore@v3
+        with:
+          path: maddock
+          key: maddock-${{ github.run_id }}-${{ github.run_number }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: maddock
+          tag_name: ${{ github.ref }}
+          release_name: maddock ${{ github.ref }}
+          generate_release_notes: true
