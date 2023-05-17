@@ -41,7 +41,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Build application
-        run: go build -v ./... -o maddock
+        run: go build -v .
 
       - name: Run tests
         run: go test -v ./...
