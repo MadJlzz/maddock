@@ -1,9 +1,0 @@
-name: Release
-
-on:
-  workflow_run:
-    workflows: [ "workflow1" ]
-    types: [ "completed" ]
-    tags:
-      - 'v..'
-
