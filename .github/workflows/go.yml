@@ -50,7 +50,7 @@ jobs:
         uses: actions/cache/save@v3
         with:
           path: maddock
-          key: maddock-${{ vars.GITHUB_RUN_ID }}
+          key: maddock-${{ github.run_id }}-${{ github.run_number }}
 
   release:
     if: startsWith(github.event.ref, 'refs/tags/v')
@@ -65,7 +65,7 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: maddock
-          key: maddock-${{ vars.GITHUB_RUN_ID }}
+          key: maddock-${{ github.run_id }}-${{ github.run_number }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
