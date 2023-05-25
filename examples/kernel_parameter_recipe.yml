@@ -1,0 +1,2 @@
+kernel_parameters:
+  - fs/inotify/max_user_instances: 129
