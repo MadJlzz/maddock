@@ -2,7 +2,8 @@ package core
 
 import (
 	"context"
-	"github.com/MadJlzz/maddock/internal/modules"
+	"github.com/MadJlzz/maddock/internal/recipe"
+	"gopkg.in/yaml.v3"
 	"log"
 	"os"
 	"os/exec"
@@ -70,16 +71,26 @@ func (a *Agent) pollRecipe(ctx context.Context, pollEventsChan chan<- struct{}) 
 }
 
 func (a *Agent) executeRecipe(ctx context.Context, pollEventsChan <-chan struct{}) {
-	// TODO: will be better to have the recipe passed.
-	kernelModule := modules.NewKernelModule([]modules.KernelParameter{
-		{Key: "fs/inotify/max_user_instances", Value: "129"},
-	})
+	recipesFilepath := recipe.DiscoverRecipes(a.cfg.Vcs.Destination)
+
+	// TODO: better to merge all recipes found into one big recipe.
+	// It might be something like a merge of multiple YAML files.
+	// Then there is the unmarshal part. I guess this will me moved in the parser section.
+	var r recipe.Recipe
+	fd, _ := os.ReadFile(recipesFilepath[0])
+	if err := yaml.Unmarshal(fd, &r); err != nil {
+		panic(err)
+	}
+
 	for {
 		select {
 		case <-pollEventsChan:
 			log.Printf("a new poll event just occured!")
-			if ok := kernelModule.Dirty(); ok {
-				_ = kernelModule.Do()
+			// TODO: same here; we need to execute each modules.
+			// Even here, some async execution would be beneficial.
+			// Have to think about modules that could have concurrent race conditions.
+			if ok := r.Modules[0].Dirty(); ok {
+				_ = r.Modules[0].Do()
 			}
 		case <-ctx.Done():
 			log.Printf("stop recipe execution properly...")
@@ -96,8 +107,6 @@ func (a *Agent) Start(ctx context.Context) {
 	pollEventsChan := make(chan struct{})
 	a.pollWg.Add(1)
 
-	go a.pollRecipe(ctx, pollEventsChan)
-	go a.executeRecipe(ctx, pollEventsChan)
 	// Check if the configuration changed. If the configuration changed we need to apply it.
 	// We need to store the state of the current infrastructure.
 	// 	An idea is to run a verify() method that checks the actual status, encode and store the result.
@@ -109,5 +118,8 @@ func (a *Agent) Start(ctx context.Context) {
 	//   Capability to store a state. First implementation should be in-memory. Maybe a file is required to not replay on startup.
 	//   A modules (for e.g. KernelParameters) is equipped of a verify() and do() method.
 	//   An orchestrator should call the right modules
+	go a.pollRecipe(ctx, pollEventsChan)
+	go a.executeRecipe(ctx, pollEventsChan)
+
 	a.pollWg.Wait()
 }

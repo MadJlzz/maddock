@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"github.com/MadJlzz/maddock/internal/core"
-	"github.com/MadJlzz/maddock/internal/recipe"
 	"log"
 	"os"
 	"os/signal"
@@ -24,9 +22,5 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	fmt.Println(agent, ctx)
-
-	recipe.DiscoverRecipes("examples")
-
-	//agent.Start(ctx)
+	agent.Start(ctx)
 }
