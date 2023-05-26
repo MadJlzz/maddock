@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/MadJlzz/maddock/internal/state"
 	"golang.org/x/exp/slices"
+	"gopkg.in/yaml.v3"
 	"log"
 )
 
@@ -16,6 +17,12 @@ type KernelParameter struct {
 func (kp *KernelParameter) Base64Encode() string {
 	b := []byte(fmt.Sprintf("%s:%s", kp.Key, kp.Value))
 	return base64.StdEncoding.EncodeToString(b)
+}
+
+func (kp *KernelParameter) UnmarshalYAML(value *yaml.Node) error {
+	kp.Key = value.Content[0].Value
+	kp.Value = value.Content[1].Value
+	return nil
 }
 
 type KernelParameterModule struct {
@@ -54,5 +61,19 @@ func (k *KernelParameterModule) Do() error {
 		}
 		k.stateService.Insert("kernel_module", kp.Base64Encode())
 	}
+	return nil
+}
+
+func (k *KernelParameterModule) UnmarshalYAML(value *yaml.Node) error {
+	var kp []KernelParameter
+	if err := value.Decode(&kp); err != nil {
+		return err
+	}
+
+	tmpKernelModule := NewKernelModule(kp)
+	k.parameters = tmpKernelModule.parameters
+	// TODO: This value should be configured from the actual agent configuration.
+	k.stateService = tmpKernelModule.stateService
+
 	return nil
 }
