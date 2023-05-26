@@ -11,9 +11,6 @@ import (
 
 type Recipe struct {
 	Modules []modules.Module
-	//Modules struct {
-	//	KernelParameterModule modules.Module `yaml:"kernel_parameters"`
-	//}
 }
 
 func DiscoverRecipes(sourcePath string) {
@@ -45,7 +42,7 @@ func DiscoverRecipes(sourcePath string) {
 }
 
 type tmpRecipe struct {
-	KPM []yaml.Node `yaml:"kernel_parameters"`
+	KPM modules.KernelParameterModule `yaml:"kernel_parameters"`
 }
 
 func (r *Recipe) UnmarshalYAML(value *yaml.Node) error {
@@ -53,16 +50,6 @@ func (r *Recipe) UnmarshalYAML(value *yaml.Node) error {
 	if err := value.Decode(&tmp); err != nil {
 		return err
 	}
-	var kernelParameters []modules.KernelParameter
-	for _, i := range tmp.KPM {
-		kp := modules.KernelParameter{
-			Key:   i.Content[0].Value,
-			Value: i.Content[1].Value,
-		}
-		kernelParameters = append(kernelParameters, kp)
-	}
-
-	r.Modules = append(r.Modules, modules.NewKernelModule(kernelParameters))
-
+	r.Modules = append(r.Modules, &tmp.KPM)
 	return nil
 }
