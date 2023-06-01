@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"fmt"
 	"github.com/MadJlzz/maddock/internal/recipe"
 	"gopkg.in/yaml.v3"
 	"log"
@@ -52,9 +53,15 @@ func (a *Agent) pollRecipe(ctx context.Context, pollEventsChan chan<- struct{}) 
 		select {
 		case <-time.After(a.cfg.VcsPollDelay):
 			log.Printf("updating recipe %s using reference %s\n", a.cfg.Vcs.URI, a.cfg.Vcs.Ref)
-			cmd := exec.CommandContext(
+			cmd := exec.CommandContext(ctx, a.gitPath, "fetch", "origin")
+			cmd.Dir = a.cfg.Vcs.Destination
+			if err := cmd.Run(); err != nil {
+				log.Printf("could not fetch recipes. %v", err)
+			}
+			log.Printf("reseting recipes %s using reference %s\n", a.cfg.Vcs.URI, a.cfg.Vcs.Ref)
+			cmd = exec.CommandContext(
 				ctx, a.gitPath,
-				"reset", "--hard", a.cfg.Vcs.Ref,
+				"reset", "--hard", fmt.Sprintf("origin/%s", a.cfg.Vcs.Ref),
 			)
 			cmd.Dir = a.cfg.Vcs.Destination
 			if err := cmd.Run(); err != nil {
@@ -71,21 +78,22 @@ func (a *Agent) pollRecipe(ctx context.Context, pollEventsChan chan<- struct{}) 
 }
 
 func (a *Agent) executeRecipe(ctx context.Context, pollEventsChan <-chan struct{}) {
-	recipesFilepath := recipe.DiscoverRecipes(a.cfg.Vcs.Destination)
-
-	// TODO: better to merge all recipes found into one big recipe.
-	// It might be something like a merge of multiple YAML files.
-	// Then there is the unmarshal part. I guess this will me moved in the parser section.
-	var r recipe.Recipe
-	fd, _ := os.ReadFile(recipesFilepath[0])
-	if err := yaml.Unmarshal(fd, &r); err != nil {
-		panic(err)
-	}
-
 	for {
 		select {
 		case <-pollEventsChan:
 			log.Printf("a new poll event just occured!")
+
+			recipesFilepath := recipe.DiscoverRecipes(a.cfg.Vcs.Destination)
+
+			// TODO: better to merge all recipes found into one big recipe.
+			// It might be something like a merge of multiple YAML files.
+			// Then there is the unmarshal part. I guess this will me moved in the parser section.
+			var r recipe.Recipe
+			fd, _ := os.ReadFile(recipesFilepath[0])
+			if err := yaml.Unmarshal(fd, &r); err != nil {
+				panic(err)
+			}
+
 			// TODO: same here; we need to execute each modules.
 			// Even here, some async execution would be beneficial.
 			// Have to think about modules that could have concurrent race conditions.
