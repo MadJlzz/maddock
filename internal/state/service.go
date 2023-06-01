@@ -13,7 +13,7 @@ func NewStateService(storageType StorageType) *Service {
 	return &Service{backend: backend}
 }
 
-func (ss *Service) Get(moduleName string) []string {
+func (ss *Service) Get(moduleName string) string {
 	return ss.backend.Get(moduleName)
 }
 

@@ -4,9 +4,9 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/MadJlzz/maddock/internal/state"
-	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v3"
 	"log"
+	"strings"
 )
 
 type KernelParameter struct {
@@ -14,9 +14,8 @@ type KernelParameter struct {
 	Value string
 }
 
-func (kp *KernelParameter) Base64Encode() string {
-	b := []byte(fmt.Sprintf("%s:%s", kp.Key, kp.Value))
-	return base64.StdEncoding.EncodeToString(b)
+func (kp *KernelParameter) String() string {
+	return fmt.Sprintf("%s:%s", kp.Key, kp.Value)
 }
 
 func (kp *KernelParameter) UnmarshalYAML(value *yaml.Node) error {
@@ -38,15 +37,19 @@ func NewKernelModule(parameters []KernelParameter) *KernelParameterModule {
 	}
 }
 
-func (k *KernelParameterModule) Dirty() bool {
-	stateHashes := k.stateService.Get("kernel_module")
-	if len(stateHashes) != len(k.parameters) {
-		return true
+func (k *KernelParameterModule) Base64Encode() string {
+	stringifyParameters := make([]string, len(k.parameters))
+	for _, v := range k.parameters {
+		stringifyParameters = append(stringifyParameters, v.String())
 	}
-	for _, p := range k.parameters {
-		if ok := slices.Contains(stateHashes, p.Base64Encode()); !ok {
-			return true
-		}
+	b := []byte(strings.Join(stringifyParameters, "."))
+	return base64.StdEncoding.EncodeToString(b)
+}
+
+func (k *KernelParameterModule) Dirty() bool {
+	stateHash := k.stateService.Get("kernel_module")
+	if stateHash != k.Base64Encode() {
+		return true
 	}
 	return false
 }
@@ -55,12 +58,14 @@ func (k *KernelParameterModule) Do() error {
 	log.Println("Module state has changed, rerunning everything.")
 	// Foreach KernelParameters, we apply it and insert it to the state.
 	for _, p := range k.parameters {
+		// TODO: compute the whole string to encode.
 		kp := KernelParameter{
 			Key:   p.Key,
 			Value: p.Value,
 		}
-		k.stateService.Insert("kernel_module", kp.Base64Encode())
+		fmt.Println(kp)
 	}
+	k.stateService.Insert("kernel_module", k.Base64Encode())
 	return nil
 }
 
