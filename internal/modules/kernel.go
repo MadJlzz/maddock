@@ -48,10 +48,7 @@ func (k *KernelParameterModule) Base64Encode() string {
 
 func (k *KernelParameterModule) Dirty() bool {
 	stateHash := k.stateService.Get("kernel_module")
-	if stateHash != k.Base64Encode() {
-		return true
-	}
-	return false
+	return stateHash != k.Base64Encode()
 }
 
 func (k *KernelParameterModule) Do() error {
