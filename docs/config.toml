@@ -1,4 +1,4 @@
-baseURL = "/"
+baseURL = "https://madjlzz.github.io/maddock/"
 theme = "hugo-whisper-theme"
 languageCode = "en-us"
 title = "Hugo Whisper Theme"
