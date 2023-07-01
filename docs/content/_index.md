@@ -1,6 +1,5 @@
 ---
-title: 'Hugo Whisper Docs'
-date: 2018-11-28T15:14:39+10:00
+title: 'Maddock'
 ---
 
-Whisper is a documentation theme built with Hugo. The design and functionality is intentionally minimal. 
+Maddock is a `configuration as code` tool that let Ops describe a machine fleet's state.

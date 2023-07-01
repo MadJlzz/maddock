@@ -2,6 +2,7 @@
 title: 'Specimen'
 date: 2019-02-11T19:27:37+10:00
 weight: 5
+summary: Syntax highlighting and menus can be configured via `config.toml`.
 ---
 
 # <a name="top"></a>Markdown Test Page
