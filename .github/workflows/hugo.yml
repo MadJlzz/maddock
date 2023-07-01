@@ -6,6 +6,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'docs/**'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -26,13 +28,14 @@ concurrency:
 defaults:
   run:
     shell: bash
+    working-directory: docs
 
 jobs:
   # Build job
   build:
     runs-on: ubuntu-latest
     env:
-      HUGO_VERSION: 0.114.0
+      HUGO_VERSION: 0.115.0
     steps:
       - name: Install Hugo CLI
         run: |
