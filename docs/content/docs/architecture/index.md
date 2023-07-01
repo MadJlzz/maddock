@@ -1,6 +1,6 @@
 ---
 title: 'Architecture'
-weight: 1
+weight: 2
 #summary: Syntax highlighting and menus can be configured via `config.toml`.
 ---
 
