@@ -6,7 +6,12 @@ on:
       - v*
     branches:
       - main
+    paths-ignore:
+      - 'docs/**'
   pull_request:
+    paths-ignore:
+      - 'docs/**'
+
 permissions:
   contents: read
 
