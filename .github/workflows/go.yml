@@ -73,7 +73,7 @@ jobs:
           key: maddock-${{ github.run_id }}-${{ github.run_number }}
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: maddock ${{ github.ref_name }}
           generate_release_notes: true
