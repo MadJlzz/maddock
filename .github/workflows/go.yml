@@ -52,7 +52,7 @@ jobs:
         run: go test -v ./...
 
       - name: Save build output
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         with:
           path: maddock
           key: maddock-${{ github.run_id }}-${{ github.run_number }}
@@ -67,7 +67,7 @@ jobs:
       contents: write
     steps:
       - name: Download build output
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: maddock
           key: maddock-${{ github.run_id }}-${{ github.run_number }}
