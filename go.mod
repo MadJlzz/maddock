@@ -1,6 +1,6 @@
 module github.com/MadJlzz/maddock
 
-go 1.20
+go 1.22
 
 require gopkg.in/yaml.v3 v3.0.1
 
