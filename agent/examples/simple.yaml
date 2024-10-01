@@ -1,0 +1,5 @@
+whatever: 123
+
+kernel_parameters:
+  - fs/inotify/max_user_instances: 129
+  - debug/exception-trace: 0
