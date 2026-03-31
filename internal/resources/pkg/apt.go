@@ -17,16 +17,16 @@ func newAptManager(cmder util.Commander) *aptManager {
 }
 
 func (am *aptManager) IsInstalled(ctx context.Context, pkg string) (bool, string, error) {
-	//TODO implement me
+	// TODO implement me
 	panic("implement me")
 }
 
 func (am *aptManager) Install(ctx context.Context, pkg string) error {
-	//TODO implement me
+	// TODO implement me
 	panic("implement me")
 }
 
 func (am *aptManager) Remove(ctx context.Context, pkg string) error {
-	//TODO implement me
+	// TODO implement me
 	panic("implement me")
 }
