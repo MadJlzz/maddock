@@ -25,7 +25,12 @@ func (dr *dummyResource) Apply(ctx context.Context) (*ApplyResult, error) {
 	return &ApplyResult{}, nil
 }
 
+func cleanRegistry() {
+	registry = make(map[string]ParseFn)
+}
+
 func TestRegisterAndParseExistingResource(t *testing.T) {
+	t.Cleanup(cleanRegistry)
 	Register("dummyType", func(name string, attrs map[string]any) (Resource, error) {
 		return &dummyResource{name: name}, nil
 	})
@@ -46,6 +51,7 @@ func TestRegisterAndParseExistingResource(t *testing.T) {
 }
 
 func TestParseUnknownResource(t *testing.T) {
+	t.Cleanup(cleanRegistry)
 	_, err := Parse("unknown", "dummyName", map[string]any{})
 	if err == nil {
 		t.Fatal("an error is expected here")

@@ -4,9 +4,12 @@ import "fmt"
 
 type ParseFn func(name string, attrs map[string]any) (Resource, error)
 
-var registry = map[string]ParseFn{}
+var registry = make(map[string]ParseFn)
 
 func Register(kind string, parseFn ParseFn) {
+	if _, dup := registry[kind]; dup {
+		panic("resource already registered: " + kind)
+	}
 	registry[kind] = parseFn
 }
 

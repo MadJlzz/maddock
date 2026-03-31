@@ -16,14 +16,16 @@ type Commander interface {
 type RealCommander struct{}
 
 func (r RealCommander) Run(ctx context.Context, name string, args []string) (io.Reader, io.Reader, int, error) {
-	cmd := exec.CommandContext(ctx, name, args...)
-
-	stdout := &bytes.Buffer{}
-	stderr := &bytes.Buffer{}
+	bin, err := exec.LookPath(name)
+	if err != nil {
+		return nil, nil, -1, fmt.Errorf("could not find %q: %w", name, err)
+	}
+	stdout, stderr := &bytes.Buffer{}, &bytes.Buffer{}
+	cmd := exec.CommandContext(ctx, bin, args...)
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr
 
-	err := cmd.Run()
+	err = cmd.Run()
 	return stdout, stderr, cmd.ProcessState.ExitCode(), err
 }
 
