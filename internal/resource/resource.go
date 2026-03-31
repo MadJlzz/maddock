@@ -5,8 +5,8 @@ import "context"
 type Resource interface {
 	Type() string
 	Name() string
-	Check(context.Context) (*CheckResult, error)
-	Apply(context.Context) (*ApplyResult, error)
+	Check(ctx context.Context) (*CheckResult, error)
+	Apply(ctx context.Context) (*ApplyResult, error)
 }
 
 type State string
