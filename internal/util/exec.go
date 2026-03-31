@@ -3,6 +3,7 @@ package util
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os/exec"
@@ -26,6 +27,9 @@ func (r RealCommander) Run(ctx context.Context, name string, args []string) (io.
 	cmd.Stderr = stderr
 
 	err = cmd.Run()
+	if _, ok := errors.AsType[*exec.ExitError](err); ok {
+		err = nil
+	}
 	return stdout, stderr, cmd.ProcessState.ExitCode(), err
 }
 
