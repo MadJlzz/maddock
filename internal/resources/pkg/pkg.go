@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"context"
+	"fmt"
 	"os/exec"
 
 	"github.com/MadJlzz/maddock/internal/resource"
@@ -10,8 +11,21 @@ import (
 
 func init() {
 	resource.Register("package", func(name string, attrs map[string]any) (resource.Resource, error) {
-		manager := detectManager()
-		state, _ := attrs["state"].(string)
+		manager, err := getManager()
+		if err != nil {
+			return nil, err
+		}
+		val, ok := attrs["state"]
+		if !ok {
+			return nil, fmt.Errorf("missing attr 'state'")
+		}
+		state, ok := val.(string)
+		if !ok {
+			return nil, fmt.Errorf("state is expected to be a string")
+		}
+		if state != "present" && state != "absent" {
+			return nil, fmt.Errorf("state is expected to be 'present' or 'absent'")
+		}
 		return &PackageResource{
 			pkg:          name,
 			desiredState: state,
@@ -20,13 +34,13 @@ func init() {
 	})
 }
 
-func detectManager() Manager {
+func getManager() (Manager, error) {
 	if _, err := exec.LookPath("dnf"); err == nil {
-		return newDnfManager(util.RealCommander{})
-	} else if _, err := exec.LookPath("apt"); err == nil {
-		return newAptManager(util.RealCommander{})
+		return newDnfManager(util.RealCommander{}), nil
+	} else if _, err = exec.LookPath("apt"); err == nil {
+		return newAptManager(util.RealCommander{}), nil
 	}
-	panic("no dependency manager found - this should never happen")
+	return nil, fmt.Errorf("no package manager found in $PATH")
 }
 
 type Manager interface {
