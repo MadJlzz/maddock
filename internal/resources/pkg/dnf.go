@@ -2,7 +2,7 @@ package pkg
 
 import (
 	"context"
-	"io"
+	"fmt"
 
 	"github.com/MadJlzz/maddock/internal/util"
 )
@@ -25,19 +25,27 @@ func (dm *dnfManager) IsInstalled(ctx context.Context, pkg string) (bool, string
 	if status != 0 {
 		return false, "", nil
 	}
-	pkgName, err := io.ReadAll(stdout)
-	if err != nil {
-		return false, "", err
-	}
-	return true, string(pkgName), nil
+	return true, stdout, nil
 }
 
 func (dm *dnfManager) Install(ctx context.Context, pkg string) error {
-	_, _, _, err := dm.cmder.Run(ctx, "dnf", []string{"install", "--yes", pkg})
-	return err
+	_, stderr, status, err := dm.cmder.Run(ctx, "dnf", []string{"install", "--yes", pkg})
+	if err != nil {
+		return err
+	}
+	if status != 0 {
+		return fmt.Errorf("dnf install failed with status %d and err %s", status, stderr)
+	}
+	return nil
 }
 
 func (dm *dnfManager) Remove(ctx context.Context, pkg string) error {
-	_, _, _, err := dm.cmder.Run(ctx, "dnf", []string{"remove", "--yes", pkg})
-	return err
+	_, stderr, status, err := dm.cmder.Run(ctx, "dnf", []string{"remove", "--yes", pkg})
+	if err != nil {
+		return err
+	}
+	if status != 0 {
+		return fmt.Errorf("dnf remove failed with status %d and err %v", status, stderr)
+	}
+	return nil
 }

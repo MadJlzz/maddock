@@ -9,11 +9,11 @@ import (
 
 func TestDnfManager_IsInstalled(t *testing.T) {
 	mockedCommands := map[string]util.MockCommand{
-		"rpm---query-installedPkg": {
+		"rpm --query installedPkg": {
 			Output:   "installedPkg",
 			ExitCode: 0,
 		},
-		"rpm---query-missingPkg": {
+		"rpm --query missingPkg": {
 			Output:   "",
 			ExitCode: 1,
 		},
@@ -46,9 +46,55 @@ func TestDnfManager_IsInstalled(t *testing.T) {
 }
 
 func TestDnfManager_Install(t *testing.T) {
-	t.FailNow()
+	mockedCommands := map[string]util.MockCommand{
+		"dnf install --yes pkg": {
+			ExitCode: 0,
+		},
+		"dnf install --yes errorPkg": {
+			ExitCode: 1,
+		},
+	}
+	manager := dnfManager{cmder: util.MockCommander{Commands: mockedCommands}}
+
+	t.Run("package is installed", func(t *testing.T) {
+		err := manager.Install(context.Background(), "pkg")
+		if err != nil {
+			t.Fatalf("failed to install new package: %v", err)
+		}
+	})
+
+	t.Run("package installation errors", func(t *testing.T) {
+		err := manager.Install(context.Background(), "errorPkg")
+		if err == nil {
+			t.Fatalf("install failed, want error")
+		}
+	})
+
 }
 
 func TestDnfManager_Remove(t *testing.T) {
-	t.FailNow()
+	mockedCommands := map[string]util.MockCommand{
+		"dnf remove --yes pkg": {
+			ExitCode: 0,
+		},
+		"dnf remove --yes errorPkg": {
+			ExitCode: 1,
+		},
+	}
+	manager := dnfManager{cmder: util.MockCommander{Commands: mockedCommands}}
+
+	t.Run("package is removed", func(t *testing.T) {
+		err := manager.Remove(context.Background(), "pkg")
+		if err != nil {
+			t.Fatalf("failed to remove package: %v", err)
+		}
+	})
+
+	t.Run("package remove errors", func(t *testing.T) {
+		err := manager.Remove(context.Background(), "errorPkg")
+		if err == nil {
+			t.Fatalf("remove failed, want error")
+		}
+	})
+
 }
