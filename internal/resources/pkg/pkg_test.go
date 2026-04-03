@@ -31,24 +31,72 @@ type MockManager struct {
 }
 
 func (m *MockManager) IsInstalled(ctx context.Context, pkg string) (bool, string, error) {
-	mp, ok := m.Results[pkg]
+	mmr, ok := m.Results[pkg]
 	if !ok {
-		return false, "", fmt.Errorf("package %s not found", pkg)
+		return false, "", fmt.Errorf("mock results not found for package %s", pkg)
 	}
-	return mp.installed, "", nil
+	return mmr.installed, "", nil
 }
 
 func (m *MockManager) Install(ctx context.Context, pkg string) error {
-	//TODO implement me
-	panic("implement me")
+	mmr, ok := m.Results[pkg]
+	if !ok {
+		return fmt.Errorf("mock results not found for package %s", pkg)
+	}
+	return mmr.installErr
 }
 
 func (m *MockManager) Remove(ctx context.Context, pkg string) error {
-	//TODO implement me
-	panic("implement me")
+	mmr, ok := m.Results[pkg]
+	if !ok {
+		return fmt.Errorf("mock results not found for package %s", pkg)
+	}
+	return mmr.removeErr
 }
 
 func TestPackageResource_Apply(t *testing.T) {
+	tests := []struct {
+		name         string
+		pkg          string
+		wantErr      bool
+		desiredState string
+		result       resource.State
+	}{
+		{"installed and present, want Ok", "installedAndPresent", false, "present", resource.Ok},
+		{"not installed and present, want Changed", "notInstalledAndPresent", false, "present", resource.Changed},
+		{"installed and absent, want Changed", "installedAndAbsent", false, "absent", resource.Changed},
+		{"not installed and absent, want Ok", "notInstalledAndAbsent", false, "absent", resource.Ok},
+		{"not installed and present but Err, want Failed", "notInstalledAndPresentButErr", true, "present", resource.Failed},
+		{"installed and absent but Err, want Failed", "installedAndAbsentButErr", true, "absent", resource.Failed},
+	}
+
+	mockManager := &MockManager{
+		Results: map[string]MockManagerResult{
+			"installedAndPresent":          {installed: true},
+			"notInstalledAndPresent":       {installed: false},
+			"installedAndAbsent":           {installed: true},
+			"notInstalledAndAbsent":        {installed: false},
+			"notInstalledAndPresentButErr": {installed: false, installErr: fmt.Errorf("mock install pkg error")},
+			"installedAndAbsentButErr":     {installed: true, removeErr: fmt.Errorf("mock install pkg error")},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pr := PackageResource{
+				pkg:          tt.pkg,
+				desiredState: tt.desiredState,
+				manager:      mockManager,
+			}
+			results, err := pr.Apply(context.Background())
+			if tt.wantErr {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+			assert.Equal(t, tt.result, results.Result)
+		})
+	}
 
 }
 
