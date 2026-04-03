@@ -1,0 +1,8 @@
+name: webserver
+
+resources:
+  - package:
+      nginx:
+        state: present
+      curl:
+        state: present
