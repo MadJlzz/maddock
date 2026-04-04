@@ -45,7 +45,11 @@ func (r *Report) String() string {
 	for i, rr := range r.ResourceReports {
 		label := fmt.Sprintf("%s:%s", rr.Type, rr.Name)
 		dots := strings.Repeat(".", max(1, padWidth-len(label)))
-		fmt.Fprintf(&builder, "[%d/%d] %s %s %s %s\n", i+1, len(r.ResourceReports), label, dots, rr.State, formatDifferences(rr.Differences))
+		detail := formatDifferences(rr.Differences)
+		if rr.Error != nil {
+			detail = "(" + rr.Error.Error() + ")"
+		}
+		fmt.Fprintf(&builder, "[%d/%d] %s %s %s %s\n", i+1, len(r.ResourceReports), label, dots, rr.State, detail)
 		stateCounter[rr.State]++
 		totalDuration += rr.Duration
 	}
