@@ -18,10 +18,20 @@ type mockResource struct {
 	applyErr    error
 }
 
-func (m *mockResource) Type() string                                       { return "mock" }
-func (m *mockResource) Name() string                                       { return m.name }
-func (m *mockResource) Check(ctx context.Context) (*resource.CheckResult, error) { return m.checkResult, m.checkErr }
-func (m *mockResource) Apply(ctx context.Context) (*resource.ApplyResult, error) { return m.applyResult, m.applyErr }
+func (m *mockResource) Type() string {
+	return "mock"
+}
+
+func (m *mockResource) Name() string {
+	return m.name
+}
+
+func (m *mockResource) Check(ctx context.Context) (*resource.CheckResult, error) {
+	return m.checkResult, m.checkErr
+}
+func (m *mockResource) Apply(ctx context.Context) (*resource.ApplyResult, error) {
+	return m.applyResult, m.applyErr
+}
 
 func TestRun_NoChanges(t *testing.T) {
 	c := &catalog.Catalog{
