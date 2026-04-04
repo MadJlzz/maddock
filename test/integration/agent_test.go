@@ -16,7 +16,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-func buildAgent(t *testing.T, ctx context.Context) testcontainers.Container {
+func buildAgent(t *testing.T, ctx context.Context, containerfile string) testcontainers.Container {
 	t.Helper()
 	projectRoot, err := filepath.Abs("../../")
 	require.NoError(t, err)
@@ -25,7 +25,7 @@ func buildAgent(t *testing.T, ctx context.Context) testcontainers.Container {
 		ContainerRequest: testcontainers.ContainerRequest{
 			FromDockerfile: testcontainers.FromDockerfile{
 				Context:    projectRoot,
-				Dockerfile: "Containerfile",
+				Dockerfile: containerfile,
 			},
 			Files: []testcontainers.ContainerFile{
 				{
@@ -59,9 +59,9 @@ func execAgent(t *testing.T, ctx context.Context, container testcontainers.Conta
 	return code, stdout.String()
 }
 
-func TestAgentInstallPackage(t *testing.T) {
+func testInstallPackage(t *testing.T, containerfile string) {
 	ctx := context.Background()
-	container := buildAgent(t, ctx)
+	container := buildAgent(t, ctx, containerfile)
 	defer func() { _ = container.Terminate(ctx) }()
 
 	// First run: package should be installed
@@ -78,9 +78,9 @@ func TestAgentInstallPackage(t *testing.T) {
 	t.Log(output)
 }
 
-func TestAgentRemovePackage(t *testing.T) {
+func testRemovePackage(t *testing.T, containerfile string) {
 	ctx := context.Background()
-	container := buildAgent(t, ctx)
+	container := buildAgent(t, ctx, containerfile)
 	defer func() { _ = container.Terminate(ctx) }()
 
 	// First install the package
@@ -101,19 +101,43 @@ func TestAgentRemovePackage(t *testing.T) {
 	t.Log(output)
 }
 
-func TestAgentDryRun(t *testing.T) {
+func testDryRun(t *testing.T, containerfile string, queryCmd []string) {
 	ctx := context.Background()
-	container := buildAgent(t, ctx)
+	container := buildAgent(t, ctx, containerfile)
 	defer func() { _ = container.Terminate(ctx) }()
 
-	// Dry-run should report SKIPPED, not install anything
+	// Dry-run should report SKIPPED, not install anything (exit code 3 = changes pending)
 	code, output := execAgent(t, ctx, container, "apply", "--dry-run", "/etc/maddock/install-pkg.yaml")
-	assert.Equal(t, 0, code)
+	assert.Equal(t, 3, code)
 	assert.Contains(t, output, "SKIPPED")
 	t.Log(output)
 
 	// Verify the package was NOT actually installed
-	verifyCode, _, err := container.Exec(ctx, []string{"rpm", "--query", "htop"})
+	verifyCode, _, err := container.Exec(ctx, queryCmd)
 	require.NoError(t, err)
 	assert.NotEqual(t, 0, verifyCode, "package should not be installed after dry-run")
+}
+
+func TestFedora_InstallPackage(t *testing.T) {
+	testInstallPackage(t, "Containerfile")
+}
+
+func TestFedora_RemovePackage(t *testing.T) {
+	testRemovePackage(t, "Containerfile")
+}
+
+func TestFedora_DryRun(t *testing.T) {
+	testDryRun(t, "Containerfile", []string{"rpm", "--query", "htop"})
+}
+
+func TestUbuntu_InstallPackage(t *testing.T) {
+	testInstallPackage(t, "test/Containerfile.ubuntu")
+}
+
+func TestUbuntu_RemovePackage(t *testing.T) {
+	testRemovePackage(t, "test/Containerfile.ubuntu")
+}
+
+func TestUbuntu_DryRun(t *testing.T) {
+	testDryRun(t, "test/Containerfile.ubuntu", []string{"dpkg-query", "--status", "htop"})
 }
