@@ -1,0 +1,6 @@
+name: test-remove
+
+resources:
+  - package:
+      htop:
+        state: absent
