@@ -4,11 +4,11 @@ golangci-lint = "2"
 
 [tasks.build]
 description = "Build all binaries"
-run = "report build ./..."
+run = "go build ./..."
 
 [tasks.test]
 description = "Run all tests"
-run = "report test ./..."
+run = "go test ./..."
 
 [tasks.lint]
 description = "Run golangci-lint"
