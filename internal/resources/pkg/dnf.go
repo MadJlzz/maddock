@@ -29,7 +29,7 @@ func (dm *dnfManager) IsInstalled(ctx context.Context, pkg string) (bool, string
 }
 
 func (dm *dnfManager) Install(ctx context.Context, pkg string) error {
-	_, stderr, status, err := dm.cmder.Run(ctx, "dnf", []string{"install", "--yes", pkg})
+	_, stderr, status, err := dm.cmder.Run(ctx, "dnf", []string{"install", "--assumeyes", pkg})
 	if err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ func (dm *dnfManager) Install(ctx context.Context, pkg string) error {
 }
 
 func (dm *dnfManager) Remove(ctx context.Context, pkg string) error {
-	_, stderr, status, err := dm.cmder.Run(ctx, "dnf", []string{"remove", "--yes", pkg})
+	_, stderr, status, err := dm.cmder.Run(ctx, "dnf", []string{"remove", "--assumeyes", pkg})
 	if err != nil {
 		return err
 	}
