@@ -1,0 +1,6 @@
+name: test-install
+
+resources:
+  - package:
+      htop:
+        state: present

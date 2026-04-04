@@ -47,10 +47,10 @@ func TestDnfManager_IsInstalled(t *testing.T) {
 
 func TestDnfManager_Install(t *testing.T) {
 	mockedCommands := map[string]util.MockCommand{
-		"dnf install --yes pkg": {
+		"dnf install --assumeyes pkg": {
 			ExitCode: 0,
 		},
-		"dnf install --yes errorPkg": {
+		"dnf install --assumeyes errorPkg": {
 			ExitCode: 1,
 		},
 	}
@@ -74,10 +74,10 @@ func TestDnfManager_Install(t *testing.T) {
 
 func TestDnfManager_Remove(t *testing.T) {
 	mockedCommands := map[string]util.MockCommand{
-		"dnf remove --yes pkg": {
+		"dnf remove --assumeyes pkg": {
 			ExitCode: 0,
 		},
-		"dnf remove --yes errorPkg": {
+		"dnf remove --assumeyes errorPkg": {
 			ExitCode: 1,
 		},
 	}
