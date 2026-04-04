@@ -57,3 +57,21 @@ func (r *Report) String() string {
 	fmt.Fprintf(&builder, "\nSummary: %d changed, %d ok, %d failed | %s\n", stateCounter[resource.Changed], stateCounter[resource.Ok], stateCounter[resource.Failed], totalDuration)
 	return builder.String()
 }
+
+// ExitCode returns the appropriate process exit code:
+//   - 0: converged (all OK or CHANGED)
+//   - 2: one or more resources failed
+//   - 3: dry-run found changes (SKIPPED)
+func (r *Report) ExitCode() int {
+	for _, rr := range r.ResourceReports {
+		if rr.State == resource.Failed {
+			return 2
+		}
+	}
+	for _, rr := range r.ResourceReports {
+		if rr.State == resource.Skipped {
+			return 3
+		}
+	}
+	return 0
+}

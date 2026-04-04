@@ -41,6 +41,7 @@ func main() {
 		ctx := context.Background()
 		r := engine.Run(ctx, c, *dryRun)
 		fmt.Println(r)
+		os.Exit(r.ExitCode())
 	default:
 		fmt.Println("Usage: maddock-agent apply [--dry-run] <manifest.yaml>")
 		os.Exit(1)
