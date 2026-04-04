@@ -9,11 +9,11 @@ import (
 
 func TestAptManager_IsInstalled(t *testing.T) {
 	mockedCommands := map[string]util.MockCommand{
-		"dpkg-query installedPkg": {
+		"dpkg-query --status installedPkg": {
 			Output:   "installedPkg",
 			ExitCode: 0,
 		},
-		"dpkg-query missingPkg": {
+		"dpkg-query --status missingPkg": {
 			Output:   "",
 			ExitCode: 1,
 		},

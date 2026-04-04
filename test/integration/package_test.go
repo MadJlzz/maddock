@@ -3,61 +3,12 @@
 package integration
 
 import (
-	"bytes"
 	"context"
-	"path/filepath"
 	"testing"
-	"time"
 
-	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
 )
-
-func buildAgent(t *testing.T, ctx context.Context, containerfile string) testcontainers.Container {
-	t.Helper()
-	projectRoot, err := filepath.Abs("../../")
-	require.NoError(t, err)
-
-	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-		ContainerRequest: testcontainers.ContainerRequest{
-			FromDockerfile: testcontainers.FromDockerfile{
-				Context:    projectRoot,
-				Dockerfile: containerfile,
-			},
-			Files: []testcontainers.ContainerFile{
-				{
-					HostFilePath:      filepath.Join(projectRoot, "test", "testdata", "install-pkg.yaml"),
-					ContainerFilePath: "/etc/maddock/install-pkg.yaml",
-					FileMode:          0o644,
-				},
-				{
-					HostFilePath:      filepath.Join(projectRoot, "test", "testdata", "remove-pkg.yaml"),
-					ContainerFilePath: "/etc/maddock/remove-pkg.yaml",
-					FileMode:          0o644,
-				},
-			},
-			Entrypoint: []string{"sleep", "infinity"},
-			WaitingFor: wait.ForExec([]string{"true"}).WithStartupTimeout(60 * time.Second),
-		},
-		Started: true,
-	})
-	require.NoError(t, err)
-	return container
-}
-
-func execAgent(t *testing.T, ctx context.Context, container testcontainers.Container, args ...string) (int, string) {
-	t.Helper()
-	cmd := append([]string{"maddock-agent"}, args...)
-	code, reader, err := container.Exec(ctx, cmd)
-	require.NoError(t, err)
-	var stdout, stderr bytes.Buffer
-	_, err = stdcopy.StdCopy(&stdout, &stderr, reader)
-	require.NoError(t, err)
-	return code, stdout.String()
-}
 
 func testInstallPackage(t *testing.T, containerfile string) {
 	ctx := context.Background()
@@ -101,7 +52,7 @@ func testRemovePackage(t *testing.T, containerfile string) {
 	t.Log(output)
 }
 
-func testDryRun(t *testing.T, containerfile string, queryCmd []string) {
+func testDryRunPackage(t *testing.T, containerfile string, queryCmd []string) {
 	ctx := context.Background()
 	container := buildAgent(t, ctx, containerfile)
 	defer func() { _ = container.Terminate(ctx) }()
@@ -126,8 +77,8 @@ func TestFedora_RemovePackage(t *testing.T) {
 	testRemovePackage(t, "Containerfile")
 }
 
-func TestFedora_DryRun(t *testing.T) {
-	testDryRun(t, "Containerfile", []string{"rpm", "--query", "htop"})
+func TestFedora_DryRunPackage(t *testing.T) {
+	testDryRunPackage(t, "Containerfile", []string{"rpm", "--query", "htop"})
 }
 
 func TestUbuntu_InstallPackage(t *testing.T) {
@@ -138,6 +89,6 @@ func TestUbuntu_RemovePackage(t *testing.T) {
 	testRemovePackage(t, "test/Containerfile.ubuntu")
 }
 
-func TestUbuntu_DryRun(t *testing.T) {
-	testDryRun(t, "test/Containerfile.ubuntu", []string{"dpkg-query", "--status", "htop"})
+func TestUbuntu_DryRunPackage(t *testing.T) {
+	testDryRunPackage(t, "test/Containerfile.ubuntu", []string{"dpkg-query", "--status", "htop"})
 }

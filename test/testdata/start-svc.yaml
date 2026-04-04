@@ -1,0 +1,7 @@
+name: test-start-service
+
+resources:
+  - service:
+      maddock-test:
+        state: running
+        enabled: true

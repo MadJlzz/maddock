@@ -1,0 +1,17 @@
+FROM golang:1.26 AS build
+
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 go build -o /maddock-agent ./cmd/agent/
+
+FROM fedora:42
+
+RUN dnf install --assumeyes systemd && dnf clean all
+
+# Create a dummy service for testing
+RUN printf '[Unit]\nDescription=Maddock test service\n\n[Service]\nExecStart=/usr/bin/sleep infinity\n\n[Install]\nWantedBy=multi-user.target\n' > /etc/systemd/system/maddock-test.service
+
+COPY --from=build /maddock-agent /usr/local/bin/maddock-agent
+ENTRYPOINT ["/usr/sbin/init"]
