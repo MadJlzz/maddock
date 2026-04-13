@@ -1,6 +1,9 @@
 [tools]
 go = "1.26.1"
 golangci-lint = "2"
+protoc = "latest"
+protoc-gen-go = "latest"
+protoc-gen-go-grpc = "latest"
 
 [tasks.build]
 description = "Build all binaries"
@@ -13,6 +16,14 @@ run = "go test ./..."
 [tasks."test:integration"]
 description = "Run integration tests"
 run = "go test -tags integration -v -timeout 480s ./test/integration/"
+
+[tasks.proto]
+description = "Generate Go code from protobuf definitions"
+run = """
+protoc --go_out=. --go_opt=paths=source_relative \
+       --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+       internal/transport/proto/maddock.proto
+"""
 
 [tasks.lint]
 description = "Run golangci-lint"

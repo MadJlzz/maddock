@@ -1,0 +1,49 @@
+syntax = "proto3";
+package maddock.v1;
+option go_package = "github.com/MadJlzz/maddock/internal/transport/proto";
+
+service AgentService {
+  // Server pushes a catalog; agent streams back per-resource reports.
+  rpc ApplyCatalog(CatalogRequest) returns (stream ResourceReportMsg);
+  rpc Ping(PingRequest) returns (PingResponse);
+}
+
+message CatalogRequest {
+  string manifest_name = 1;
+  bool dry_run = 2;
+  repeated ResourceMsg resources = 3;
+}
+
+message ResourceMsg {
+  string type = 1;        // "package", "file", "service"
+  string name = 2;        // "nginx", "/etc/nginx/nginx.conf"
+  bytes attributes = 3;   // JSON-encoded attributes map
+}
+
+message ResourceReportMsg {
+  string type = 1;
+  string name = 2;
+  State state = 3;
+  repeated DifferenceMsg changes = 4;
+  string error = 5;
+  int64 duration_ms = 6;
+}
+
+enum State {
+  STATE_OK = 0;
+  STATE_CHANGED = 1;
+  STATE_FAILED = 2;
+  STATE_SKIPPED = 3;
+}
+
+message DifferenceMsg {
+  string attribute = 1;
+  string current = 2;
+  string desired = 3;
+}
+
+message PingRequest {}
+message PingResponse {
+  string hostname = 1;
+  string agent_version = 2;
+}
