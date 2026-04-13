@@ -231,6 +231,6 @@ func setCurrentOwnership(t *testing.T, path string, f *FileResource) {
 	require.NoError(t, err)
 	g, err := user.LookupGroupId(strconv.Itoa(int(stat.Gid)))
 	require.NoError(t, err)
-	f.owner = u.Name
+	f.owner = u.Username
 	f.group = g.Name
 }
