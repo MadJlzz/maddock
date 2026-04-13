@@ -330,6 +330,12 @@ targets:
 
 ---
 
+## Future Improvements
+
+- **Pass `CheckResult` to `Apply()`**: Change the `Resource` interface to `Apply(ctx, *CheckResult)` so resources can skip unchanged attributes instead of unconditionally reapplying everything. The engine already has the `CheckResult` — it just doesn't forward it.
+
+---
+
 ## Implementation Order (step-by-step)
 
 | # | What | Milestone |
