@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"os/user"
+	"path/filepath"
 	"strconv"
 	"syscall"
 	"text/template"
@@ -228,5 +229,59 @@ func (f *FileResource) Check(ctx context.Context) (*resource.CheckResult, error)
 }
 
 func (f *FileResource) Apply(ctx context.Context) (*resource.ApplyResult, error) {
-	panic("implement me")
+	// Write desired content to a temp file in the same directory
+	// so os.Rename is an atomic same-filesystem move.
+	dir := filepath.Dir(f.path)
+	tmp, err := os.CreateTemp(dir, ".maddock-*")
+	if err != nil {
+		return &resource.ApplyResult{Result: resource.Failed}, fmt.Errorf("creating temp file: %w", err)
+	}
+	tmpPath := tmp.Name()
+
+	if _, err := tmp.WriteString(f.content); err != nil {
+		_ = tmp.Close()
+		_ = os.Remove(tmpPath)
+		return &resource.ApplyResult{Result: resource.Failed}, fmt.Errorf("writing content: %w", err)
+	}
+	if err := tmp.Close(); err != nil {
+		_ = os.Remove(tmpPath)
+		return &resource.ApplyResult{Result: resource.Failed}, fmt.Errorf("closing temp file: %w", err)
+	}
+
+	// Set mode.
+	mode, err := strconv.ParseUint(f.mode, 8, 32)
+	if err != nil {
+		_ = os.Remove(tmpPath)
+		return &resource.ApplyResult{Result: resource.Failed}, fmt.Errorf("parsing mode: %w", err)
+	}
+	if err := os.Chmod(tmpPath, os.FileMode(mode)); err != nil {
+		_ = os.Remove(tmpPath)
+		return &resource.ApplyResult{Result: resource.Failed}, fmt.Errorf("chmod: %w", err)
+	}
+
+	// Set ownership.
+	u, err := user.Lookup(f.owner)
+	if err != nil {
+		_ = os.Remove(tmpPath)
+		return &resource.ApplyResult{Result: resource.Failed}, fmt.Errorf("looking up owner %s: %w", f.owner, err)
+	}
+	g, err := user.LookupGroup(f.group)
+	if err != nil {
+		_ = os.Remove(tmpPath)
+		return &resource.ApplyResult{Result: resource.Failed}, fmt.Errorf("looking up group %s: %w", f.group, err)
+	}
+	uid, _ := strconv.Atoi(u.Uid)
+	gid, _ := strconv.Atoi(g.Gid)
+	if err := os.Chown(tmpPath, uid, gid); err != nil {
+		_ = os.Remove(tmpPath)
+		return &resource.ApplyResult{Result: resource.Failed}, fmt.Errorf("chown: %w", err)
+	}
+
+	// Atomic rename into place.
+	if err := os.Rename(tmpPath, f.path); err != nil {
+		_ = os.Remove(tmpPath)
+		return &resource.ApplyResult{Result: resource.Failed}, fmt.Errorf("rename: %w", err)
+	}
+
+	return &resource.ApplyResult{Result: resource.Changed}, nil
 }
