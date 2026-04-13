@@ -121,10 +121,10 @@ func (f *FileResource) checkOwnership(fi os.FileInfo) ([]resource.Difference, er
 	if err != nil {
 		return nil, err
 	}
-	if u.Name != f.owner {
+	if u.Username != f.owner {
 		diffs = append(diffs, resource.Difference{
 			Attribute: "owner",
-			Current:   u.Name,
+			Current:   u.Username,
 			Desired:   f.owner,
 		})
 	}

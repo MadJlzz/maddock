@@ -8,6 +8,7 @@ import (
 
 	"github.com/MadJlzz/maddock/internal/catalog"
 	"github.com/MadJlzz/maddock/internal/engine"
+	_ "github.com/MadJlzz/maddock/internal/resources/file"
 	_ "github.com/MadJlzz/maddock/internal/resources/pkg"
 	_ "github.com/MadJlzz/maddock/internal/resources/service"
 )

@@ -1,0 +1,12 @@
+name: test-create-file-template
+
+resources:
+  - file:
+      /tmp/maddock-nginx.conf:
+        source: /etc/maddock/nginx.conf.tmpl
+        owner: root
+        group: root
+        mode: "0644"
+        vars:
+          worker_connections: 1024
+          server_name: localhost
