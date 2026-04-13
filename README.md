@@ -4,7 +4,16 @@ An infrastructure-as-code tool written in Go that converges Linux machines to a 
 
 ## Status
 
-**Work in progress** -- Phase 1 (core abstractions) is complete. See [PLAN.md](PLAN.md) for the full roadmap.
+**Work in progress** -- Phases 1-3 are complete. The local agent is fully functional. Currently working on Phase 4 (gRPC transport). See [PLAN.md](PLAN.md) for the full roadmap.
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| 1 | Core abstractions & project skeleton | Done |
+| 2 | Resource implementations (package, file, service) | Done |
+| 3 | YAML parser, engine & agent CLI | Done |
+| 4 | gRPC transport | In progress |
+| 5 | Server binary (push orchestration) | Not started |
+| 6 | Polish & hardening | Not started |
 
 ## Architecture
 
@@ -19,7 +28,7 @@ An infrastructure-as-code tool written in Go that converges Linux machines to a 
 ## Getting started
 
 ```bash
-# Install tools (Go, golangci-lint)
+# Install tools (Go, golangci-lint, protoc)
 mise install
 
 # Build
@@ -28,8 +37,17 @@ mise run build
 # Test
 mise run test
 
+# Integration tests (requires Docker)
+mise run test:integration
+
 # Lint
 mise run lint
+
+# Generate protobuf code
+mise run proto
+
+# Run all checks (lint, build, test)
+mise run check
 ```
 
 ## Project structure
