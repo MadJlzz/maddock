@@ -28,15 +28,23 @@ func manifestFiles(root string) []testcontainers.ContainerFile {
 		"remove-pkg.yaml",
 		"start-svc.yaml",
 		"stop-svc.yaml",
+		"create-file.yaml",
+		"create-file-template.yaml",
 	}
-	files := make([]testcontainers.ContainerFile, len(manifests))
-	for i, m := range manifests {
-		files[i] = testcontainers.ContainerFile{
+	files := make([]testcontainers.ContainerFile, 0, len(manifests)+1)
+	for _, m := range manifests {
+		files = append(files, testcontainers.ContainerFile{
 			HostFilePath:      filepath.Join(root, "test", "testdata", m),
 			ContainerFilePath: "/etc/maddock/" + m,
 			FileMode:          0o644,
-		}
+		})
 	}
+	// Template file used by create-file-template.yaml
+	files = append(files, testcontainers.ContainerFile{
+		HostFilePath:      filepath.Join(root, "test", "testdata", "nginx.conf.tmpl"),
+		ContainerFilePath: "/etc/maddock/nginx.conf.tmpl",
+		FileMode:          0o644,
+	})
 	return files
 }
 

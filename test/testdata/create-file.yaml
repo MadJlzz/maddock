@@ -1,0 +1,9 @@
+name: test-create-file
+
+resources:
+  - file:
+      /tmp/maddock-test.txt:
+        content: "hello from maddock"
+        owner: root
+        group: root
+        mode: "0644"
