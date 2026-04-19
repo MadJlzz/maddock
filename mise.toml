@@ -7,7 +7,13 @@ protoc-gen-go-grpc = "latest"
 
 [tasks.build]
 description = "Build all binaries"
-run = "go build ./..."
+run = """
+if [ -n "$GITHUB_SHA" ]; then
+  go build -ldflags "-X main.Version=$GITHUB_SHA" ./...
+else
+  go build ./...
+fi
+"""
 
 [tasks.test]
 description = "Run all tests"
