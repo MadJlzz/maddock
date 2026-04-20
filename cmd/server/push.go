@@ -118,12 +118,12 @@ func pushToTarget(ctx context.Context, t Target, dryRun bool) pushResult {
 
 func printResults(w interface{ Write(p []byte) (int, error) }, results []pushResult) {
 	for _, res := range results {
-		fmt.Fprintf(w, "=== %s (%s) ===\n", res.target.Hostname, res.target.Address)
+		_, _ = fmt.Fprintf(w, "=== %s (%s) ===\n", res.target.Hostname, res.target.Address)
 		if res.err != nil {
-			fmt.Fprintf(w, "ERROR: %v\n\n", res.err)
+			_, _ = fmt.Fprintf(w, "ERROR: %v\n\n", res.err)
 			continue
 		}
-		fmt.Fprintln(w, res.report)
+		_, _ = fmt.Fprintln(w, res.report)
 	}
 }
 
