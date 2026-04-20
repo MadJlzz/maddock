@@ -2,6 +2,7 @@ package transport
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 
 	"github.com/MadJlzz/maddock/internal/catalog"
@@ -9,7 +10,6 @@ import (
 	"github.com/MadJlzz/maddock/internal/resource"
 	"github.com/MadJlzz/maddock/internal/transport/proto"
 	"google.golang.org/grpc"
-	"gopkg.in/yaml.v3"
 )
 
 var stateToProto = map[resource.State]proto.State{
@@ -28,7 +28,7 @@ func (s *Server) ApplyCatalog(request *proto.CatalogRequest, g grpc.ServerStream
 	var catalogResources []resource.Resource
 	for _, rr := range request.GetResources() {
 		var attrs map[string]any
-		if err := yaml.Unmarshal(rr.Attributes, &attrs); err != nil {
+		if err := json.Unmarshal(rr.Attributes, &attrs); err != nil {
 			return err
 		}
 		r, err := resource.Parse(rr.Type, rr.Name, attrs)
