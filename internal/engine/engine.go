@@ -24,7 +24,12 @@ func Run(ctx context.Context, c *catalog.Catalog, dryRun bool) *report.Report {
 		checkResult, err := res.Check(ctx)
 		if err != nil {
 			rr.State = resource.Failed
-			rr.Error = err
+			rr.Error = &resource.ResourceError{
+				Type:  res.Type(),
+				Name:  res.Name(),
+				Phase: resource.PhaseCheck,
+				Err:   err,
+			}
 			rr.Duration = time.Since(start)
 			r.ResourceReports = append(r.ResourceReports, rr)
 			continue
@@ -49,7 +54,12 @@ func Run(ctx context.Context, c *catalog.Catalog, dryRun bool) *report.Report {
 		applyResult, err := res.Apply(ctx)
 		if err != nil {
 			rr.State = resource.Failed
-			rr.Error = err
+			rr.Error = &resource.ResourceError{
+				Type:  res.Type(),
+				Name:  res.Name(),
+				Phase: resource.PhaseApply,
+				Err:   err,
+			}
 			rr.Duration = time.Since(start)
 			r.ResourceReports = append(r.ResourceReports, rr)
 			continue
