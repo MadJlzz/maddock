@@ -1,0 +1,302 @@
+# Port of an Ansible role.
+#
+# Scope: best-effort translation to Maddock's current resource set
+# (package / file / service / command). Hostname, DNS, timezone, and
+# SSH values are hardcoded representative defaults; in real deployment
+# they would come from per-host configuration.
+#
+# Search for "MADDOCK-GAP:" to see every place where a missing feature
+# forced a workaround or an omission. These are tracked in PLAN.md.
+#
+# Target OS: modern Debian / Ubuntu with systemd. No OS branching is
+# implemented (MADDOCK-GAP: facts / conditionals).
+
+name: outproxies-host-setup
+
+resources:
+  # =====================================================================
+  # Sub-role: _common/package_manager — install baseline packages
+  # =====================================================================
+  - package:
+      curl:            { state: present }
+      git:             { state: present }
+      htop:            { state: present }
+      iotop:           { state: present }
+      libffi-dev:      { state: present }
+      lsof:            { state: present }
+      netcat:          { state: present }
+      python3-dev:     { state: present }
+      python3-setuptools: { state: present }
+      tree:            { state: present }
+      wget:            { state: present }
+      rsync:           { state: present }
+      libpq-dev:       { state: present }
+
+  # Sub-role: _common/package_manager — remove unwanted packages
+  - package:
+      exim4:              { state: absent }
+      exim4-base:         { state: absent }
+      exim4-config:       { state: absent }
+      exim4-daemon-light: { state: absent }
+      rpcbind:            { state: absent }
+
+  # =====================================================================
+  # Sub-role: _common/sysctl_setup — kernel parameters
+  #
+  # MADDOCK-GAP: native sysctl resource. Today we write sysctl.d/ file
+  # and use command to reload. A native resource would handle both in
+  # one declarative unit and avoid the double-step.
+  # =====================================================================
+  - file:
+      /etc/sysctl.d/99-maddock.conf:
+        content: |
+          # Managed by Maddock — do not edit
+          net.ipv6.conf.all.disable_ipv6 = 1
+          net.ipv6.conf.default.disable_ipv6 = 1
+          net.ipv6.conf.lo.disable_ipv6 = 1
+        owner: root
+        group: root
+        mode: "0644"
+
+  - command:
+      reload-sysctl:
+        command: "/sbin/sysctl -p /etc/sysctl.d/99-maddock.conf"
+        # Reload only if at least one entry isn't currently applied.
+        # MADDOCK-GAP: notify/handlers. With a proper handler, this
+        # would run exactly when the sysctl file changes, not every
+        # time a value happens to be wrong.
+        unless: >-
+          test "$(sysctl -n net.ipv6.conf.all.disable_ipv6)" = "1" &&
+          test "$(sysctl -n net.ipv6.conf.default.disable_ipv6)" = "1" &&
+          test "$(sysctl -n net.ipv6.conf.lo.disable_ipv6)" = "1"
+
+  # =====================================================================
+  # Sub-role: _common/hostname
+  #
+  # MADDOCK-GAP: lineinfile. The Ansible role uses lineinfile to edit
+  # /etc/hosts surgically. Maddock can only own the whole file, so the
+  # manifest below replaces /etc/hosts wholesale — acceptable on a fresh
+  # outproxy but destructive if the host already has custom entries.
+  #
+  # MADDOCK-GAP: native hostname resource. Would wrap the set/stat pair
+  # below into a single resource.
+  # =====================================================================
+  - file:
+      /etc/hostname:
+        content: "outproxy-01\n"
+        owner: root
+        group: root
+        mode: "0644"
+
+  - command:
+      set-hostname:
+        command: "hostnamectl set-hostname outproxy-01"
+        unless: 'test "$(hostname)" = "outproxy-01"'
+
+  - file:
+      /etc/hosts:
+        content: |
+          # Managed by Maddock — do not edit
+          127.0.0.1	localhost
+          127.0.1.1	outproxy-01.example.com	outproxy-01
+          ::1	outproxy-01.example.com	outproxy-01	localhost	ip6-localhost	ip6-loopback
+          ff02::1	ip6-allnodes
+          ff02::2	ip6-allrouters
+        owner: root
+        group: root
+        mode: "0644"
+
+  # =====================================================================
+  # Sub-role: _common/dns_resolver
+  # =====================================================================
+  - file:
+      /etc/resolv.conf:
+        content: |
+          # Managed by Maddock — do not edit
+          domain example.com
+          search example.com
+          nameserver 1.1.1.1
+          nameserver 8.8.8.8
+        owner: root
+        group: root
+        mode: "0644"
+
+  - file:
+      /etc/dhcp/dhclient-enter-hooks.d/nodnsupdate:
+        content: |
+          #!/bin/sh
+          # Prevent DHCP from overwriting /etc/resolv.conf.
+          make_resolv_conf() { : ; }
+        owner: root
+        group: root
+        mode: "0755"
+
+  # =====================================================================
+  # Sub-role: _common/datetime
+  #
+  # MADDOCK-GAP: facts / conditionals. The Ansible role branches based
+  # on ansible_os_family + ansible_distribution_version to pick between
+  # timedatectl / dpkg-reconfigure / symlink. This catalog assumes
+  # modern systemd-based Debian/Ubuntu only.
+  # =====================================================================
+  - command:
+      set-timezone:
+        command: "timedatectl set-timezone Europe/Brussels"
+        unless: 'timedatectl | grep -q "Europe/Brussels"'
+
+  - file:
+      /etc/ntp.conf:
+        content: |
+          # Managed by Maddock — do not edit
+          tinker panic 0
+          driftfile /var/lib/ntp/drift
+          restrict default nomodify notrap nopeer noquery
+          restrict 127.0.0.1
+          restrict ::1
+          server 0.pool.ntp.org iburst
+          server 1.pool.ntp.org iburst
+          server 2.pool.ntp.org iburst
+          server 3.pool.ntp.org iburst
+        owner: root
+        group: root
+        mode: "0644"
+
+  - service:
+      ntp:
+        state: running
+        enabled: true
+
+  # =====================================================================
+  # Sub-role: _common/host_cleanup
+  #
+  # MADDOCK-GAP: cron resource. The Ansible role uses the cron module
+  # to register "clean disk" running daily at 23:00. Maddock has no
+  # cron resource, so we install a /etc/cron.d/ file via file+command
+  # and idempotency is by-file-exists rather than by-cron-entry. A
+  # native cron resource would compare fields (minute, hour, command)
+  # and allow updates without recreating the file.
+  # =====================================================================
+  - file:
+      /opt/clean_disk.sh:
+        content: |
+          #!/bin/bash
+
+          apt -y --purge autoremove
+          docker image prune -f
+
+          snap list --all | awk '/disabled/{print $1, $3}' |
+                  while read -r snapname revision; do
+                          snap remove "$snapname" --revision="$revision"
+                  done
+        owner: root
+        group: root
+        mode: "0500"
+
+  - file:
+      /etc/cron.d/maddock-clean-disk:
+        content: |
+          # Managed by Maddock — do not edit
+          0 23 * * * root /opt/clean_disk.sh > /dev/null
+        owner: root
+        group: root
+        mode: "0644"
+
+  # =====================================================================
+  # Sub-role: _common/logrotate_manager — per-service rotation configs
+  # =====================================================================
+  - file:
+      /etc/logrotate.d/outproxy:
+        content: |
+          # Managed by Maddock — do not edit
+          /mnt/data/outproxy/log/*.log {
+              rotate 7
+              daily
+              missingok
+              notifempty
+              delaycompress
+              compress
+          }
+        owner: root
+        group: root
+        mode: "0644"
+
+  # =====================================================================
+  # Sub-role: _common/unattended_upgrades — automatic security updates
+  # =====================================================================
+  - package:
+      unattended-upgrades: { state: present }
+
+  - file:
+      /etc/apt/apt.conf.d/20auto-upgrades:
+        content: |
+          # Managed by Maddock — do not edit
+          APT::Periodic::Update-Package-Lists "1";
+          APT::Periodic::Unattended-Upgrade "1";
+        owner: root
+        group: root
+        mode: "0644"
+
+  # =====================================================================
+  # Sub-roles: _common/sys_users, _common/pam, _common/user_profile
+  #
+  # MADDOCK-GAP: user, group, authorized_key resources (no implementation
+  # today). sys_users creates groups and users, assigns shells, SSH
+  # keys, password-max-age, etc. PAM and user_profile both assume users
+  # exist. Until we add user/group/authorized_key, these three sub-roles
+  # cannot be ported.
+  # =====================================================================
+  # (intentionally empty — see PLAN.md gap analysis)
+
+  # =====================================================================
+  # Sub-role: _common/sshd
+  #
+  # NOTE (not a gap): the Ansible role uses a 200+ line Jinja template
+  # with macros to render sshd_config from structured variables. Porting
+  # that is tedious but mechanical — Go text/template supports the same
+  # feature set. A representative hardened config is inlined here to
+  # keep the exercise focused on real Maddock gaps.
+  #
+  # MADDOCK-GAP: notify/handlers. The Ansible flow validates and
+  # reloads sshd only when sshd_config changes. Maddock cannot express
+  # "reload only on change" yet; we use a command guarded by sshd -t
+  # after the file resource. It reloads on every apply (safe but noisy
+  # in reports).
+  # =====================================================================
+  - package:
+      openssh-server: { state: present }
+
+  - file:
+      /etc/ssh/sshd_config:
+        content: |
+          # Managed by Maddock — do not edit
+          Include /etc/ssh/sshd_config.d/*.conf
+
+          Port 22
+          AddressFamily inet
+
+          PermitRootLogin no
+          PasswordAuthentication no
+          PubkeyAuthentication yes
+          ChallengeResponseAuthentication no
+          UsePAM yes
+
+          X11Forwarding no
+          AllowTcpForwarding no
+          ClientAliveInterval 300
+          ClientAliveCountMax 2
+          MaxAuthTries 3
+
+          Subsystem sftp /usr/lib/openssh/sftp-server
+        owner: root
+        group: root
+        mode: "0644"
+
+  - command:
+      reload-sshd:
+        command: "systemctl reload ssh"
+        onlyif: "sshd -t"
+
+  - service:
+      ssh:
+        state: running
+        enabled: true
