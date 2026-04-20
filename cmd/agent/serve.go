@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"net"
 
 	"github.com/MadJlzz/maddock/internal/transport"
@@ -25,7 +26,7 @@ func newServeCmd() *cobra.Command {
 			grpcServer := grpc.NewServer()
 			proto.RegisterAgentServiceServer(grpcServer, &transport.Server{Version: Version})
 
-			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Maddock agent listening on %s\n", listen)
+			slog.Info("maddock agent listening", "address", listen, "version", Version)
 			return grpcServer.Serve(lis)
 		},
 	}

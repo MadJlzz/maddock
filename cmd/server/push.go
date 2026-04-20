@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"log/slog"
 	"os"
 	"slices"
 	"sync"
@@ -27,6 +30,7 @@ func newPushCmd() *cobra.Command {
 		dryRun     bool
 		targetName string
 		parallel   int
+		output     string
 	)
 	cmd := &cobra.Command{
 		Use:   "push",
@@ -52,7 +56,9 @@ func newPushCmd() *cobra.Command {
 			}
 
 			results := pushAll(cmd.Context(), targets, dryRun, parallel)
-			printResults(cmd.OutOrStdout(), results)
+			if err := writeResults(cmd.OutOrStdout(), results, output); err != nil {
+				return err
+			}
 			os.Exit(exitCode(results))
 			return nil
 		},
@@ -61,6 +67,7 @@ func newPushCmd() *cobra.Command {
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "check-only mode, no changes applied")
 	cmd.Flags().StringVar(&targetName, "target", "", "only push to this target hostname")
 	cmd.Flags().IntVar(&parallel, "parallel", 4, "max concurrent pushes")
+	cmd.Flags().StringVar(&output, "output", "text", "output format: text|json")
 	return cmd
 }
 
@@ -86,23 +93,28 @@ func pushAll(ctx context.Context, targets []Target, dryRun bool, parallel int) [
 }
 
 func pushToTarget(ctx context.Context, t Target, dryRun bool) pushResult {
+	log := slog.With("hostname", t.Hostname, "address", t.Address)
+	log.Info("pushing to target", "manifest", t.Manifest, "dry_run", dryRun)
 	result := pushResult{target: t}
 
 	rawManifest, err := os.ReadFile(t.Manifest)
 	if err != nil {
 		result.err = fmt.Errorf("reading manifest: %w", err)
+		log.Error("push failed", "error", result.err)
 		return result
 	}
 
 	rc, err := catalog.ParseRaw(rawManifest)
 	if err != nil {
 		result.err = fmt.Errorf("parsing manifest: %w", err)
+		log.Error("push failed", "error", result.err)
 		return result
 	}
 
 	client, err := transport.NewClient(t.Address)
 	if err != nil {
 		result.err = err
+		log.Error("push failed", "error", err)
 		return result
 	}
 	defer func() { _ = client.Close() }()
@@ -110,13 +122,27 @@ func pushToTarget(ctx context.Context, t Target, dryRun bool) pushResult {
 	r, err := client.ApplyCatalog(ctx, rc, dryRun)
 	if err != nil {
 		result.err = err
+		log.Error("push failed", "error", err)
 		return result
 	}
+	log.Info("push completed")
 	result.report = r
 	return result
 }
 
-func printResults(w interface{ Write(p []byte) (int, error) }, results []pushResult) {
+func writeResults(w io.Writer, results []pushResult, format string) error {
+	switch format {
+	case "json":
+		return writeResultsJSON(w, results)
+	case "text", "":
+		writeResultsText(w, results)
+		return nil
+	default:
+		return fmt.Errorf("unknown output format %q (expected text|json)", format)
+	}
+}
+
+func writeResultsText(w io.Writer, results []pushResult) {
 	for _, res := range results {
 		_, _ = fmt.Fprintf(w, "=== %s (%s) ===\n", res.target.Hostname, res.target.Address)
 		if res.err != nil {
@@ -125,6 +151,30 @@ func printResults(w interface{ Write(p []byte) (int, error) }, results []pushRes
 		}
 		_, _ = fmt.Fprintln(w, res.report)
 	}
+}
+
+type hostResultJSON struct {
+	Hostname string         `json:"hostname"`
+	Address  string         `json:"address"`
+	Error    string         `json:"error,omitempty"`
+	Report   *report.Report `json:"report,omitempty"`
+}
+
+func writeResultsJSON(w io.Writer, results []pushResult) error {
+	out := make([]hostResultJSON, len(results))
+	for i, res := range results {
+		out[i] = hostResultJSON{
+			Hostname: res.target.Hostname,
+			Address:  res.target.Address,
+			Report:   res.report,
+		}
+		if res.err != nil {
+			out[i].Error = res.err.Error()
+		}
+	}
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "  ")
+	return enc.Encode(out)
 }
 
 // exitCode mirrors the agent's exit code scheme but aggregates across hosts:

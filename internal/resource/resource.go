@@ -49,9 +49,9 @@ const (
 )
 
 type Difference struct {
-	Attribute string
-	Current   string
-	Desired   string
+	Attribute string `json:"attribute"`
+	Current   string `json:"current"`
+	Desired   string `json:"desired"`
 }
 
 type CheckResult struct {

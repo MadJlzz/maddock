@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"time"
 
 	"github.com/MadJlzz/maddock/internal/catalog"
@@ -32,6 +33,7 @@ type Client struct {
 
 // NewClient dials the agent at the given address.
 func NewClient(address string) (*Client, error) {
+	slog.Debug("dialing agent", "address", address)
 	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, fmt.Errorf("dialing %s: %w", address, err)

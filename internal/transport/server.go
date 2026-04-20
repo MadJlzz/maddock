@@ -3,6 +3,7 @@ package transport
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"os"
 
 	"github.com/MadJlzz/maddock/internal/catalog"
@@ -25,6 +26,11 @@ type Server struct {
 }
 
 func (s *Server) ApplyCatalog(request *proto.CatalogRequest, g grpc.ServerStreamingServer[proto.ResourceReportMsg]) error {
+	slog.Info("received ApplyCatalog",
+		"manifest", request.GetManifestName(),
+		"resources", len(request.GetResources()),
+		"dry_run", request.GetDryRun())
+
 	var catalogResources []resource.Resource
 	for _, rr := range request.GetResources() {
 		var attrs map[string]any

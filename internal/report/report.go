@@ -1,6 +1,8 @@
 package report
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -56,6 +58,81 @@ func (r *Report) String() string {
 
 	fmt.Fprintf(&builder, "\nSummary: %d changed, %d ok, %d failed | %s\n", stateCounter[resource.Changed], stateCounter[resource.Ok], stateCounter[resource.Failed], totalDuration)
 	return builder.String()
+}
+
+// --- JSON serialization ---
+
+type errorJSON struct {
+	Type    string         `json:"type,omitempty"`
+	Name    string         `json:"name,omitempty"`
+	Phase   resource.Phase `json:"phase,omitempty"`
+	Message string         `json:"message"`
+}
+
+type resourceReportJSON struct {
+	Type        string                `json:"type"`
+	Name        string                `json:"name"`
+	State       resource.State        `json:"state"`
+	Differences []resource.Difference `json:"differences,omitempty"`
+	DurationMs  int64                 `json:"duration_ms"`
+	Error       *errorJSON            `json:"error,omitempty"`
+}
+
+func (rr ResourceReport) MarshalJSON() ([]byte, error) {
+	out := resourceReportJSON{
+		Type:        rr.Type,
+		Name:        rr.Name,
+		State:       rr.State,
+		Differences: rr.Differences,
+		DurationMs:  rr.Duration.Milliseconds(),
+	}
+	if rr.Error != nil {
+		ej := &errorJSON{Message: rr.Error.Error()}
+		// If the error is a ResourceError, pull structured fields out.
+		var rerr *resource.ResourceError
+		if errors.As(rr.Error, &rerr) {
+			ej.Type = rerr.Type
+			ej.Name = rerr.Name
+			ej.Phase = rerr.Phase
+			ej.Message = rerr.Err.Error()
+		}
+		out.Error = ej
+	}
+	return json.Marshal(out)
+}
+
+type summaryJSON struct {
+	Ok         int   `json:"ok"`
+	Changed    int   `json:"changed"`
+	Failed     int   `json:"failed"`
+	Skipped    int   `json:"skipped"`
+	DurationMs int64 `json:"duration_ms"`
+}
+
+type reportJSON struct {
+	Name      string           `json:"name"`
+	Resources []ResourceReport `json:"resources"`
+	Summary   summaryJSON      `json:"summary"`
+}
+
+func (r *Report) MarshalJSON() ([]byte, error) {
+	counts := make(map[resource.State]int)
+	var total time.Duration
+	for _, rr := range r.ResourceReports {
+		counts[rr.State]++
+		total += rr.Duration
+	}
+	return json.Marshal(reportJSON{
+		Name:      r.Name,
+		Resources: r.ResourceReports,
+		Summary: summaryJSON{
+			Ok:         counts[resource.Ok],
+			Changed:    counts[resource.Changed],
+			Failed:     counts[resource.Failed],
+			Skipped:    counts[resource.Skipped],
+			DurationMs: total.Milliseconds(),
+		},
+	})
 }
 
 // ExitCode returns the appropriate process exit code:
