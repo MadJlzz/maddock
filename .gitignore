@@ -132,3 +132,7 @@ fabric.properties
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/goland+all,go,visualstudiocode
+# VitePress docs
+node_modules/
+docs/.vitepress/dist/
+docs/.vitepress/cache/

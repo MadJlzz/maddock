@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Installation :: Maddock</title>
+    <link rel="canonical" href="https://madjlzz.github.io/maddock/maddock/installation.html">
+    <meta name="generator" content="Antora 3.1.14">
+    <link rel="stylesheet" href="../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://madjlzz.github.io/maddock">Maddock</a>
+      <button class="navbar-burger" aria-controls="topbar-nav" aria-expanded="false" aria-label="Toggle main menu">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/MadJlzz/maddock">GitHub</a>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="maddock" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <button class="nav-menu-toggle" aria-label="Toggle expand/collapse all" style="display: none"></button>
+    <h3 class="title"><a href="index.html">Maddock</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html">Overview</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="installation.html">Installation</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="architecture.html">Architecture</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">CLI reference</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="cli-agent.html">maddock-agent</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="cli-server.html">maddock-server</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="resources.html">Resources</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Maddock</span>
+    <span class="version"></span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="index.html">Maddock</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">Maddock</a></li>
+    <li><a href="installation.html">Installation</a></li>
+  </ul>
+</nav>
+<div class="edit-this-page"><a href="file:///home/jklaer/Work/github/maddock/docs/modules/ROOT/pages/installation.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Installation</h1>
+<div class="sect1">
+<h2 id="_agent"><a class="anchor" href="#_agent"></a>Agent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Maddock distributes the agent as a static Linux binary. The install
+script auto-detects the CPU architecture and fetches the latest release
+from GitHub.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">curl -fsSL https://raw.githubusercontent.com/MadJlzz/maddock/main/install.sh | sh</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Install a specific version:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">curl -fsSL https://raw.githubusercontent.com/MadJlzz/maddock/main/install.sh | sh -s -- v0.1.0</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Change the installation directory:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">INSTALL_DIR=~/.local/bin curl -fsSL https://raw.githubusercontent.com/MadJlzz/maddock/main/install.sh | sh</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Supported platforms: <code>linux/amd64</code>, <code>linux/arm64</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_server"><a class="anchor" href="#_server"></a>Server</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The server is distributed as a container image on GitHub Container
+Registry:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">docker pull ghcr.io/madjlzz/maddock-server:latest</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Tag schemes available: <code>latest</code>, <code>MAJOR.MINOR</code>, and exact <code>MAJOR.MINOR.PATCH</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_from_source"><a class="anchor" href="#_from_source"></a>From source</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">git clone https://github.com/MadJlzz/maddock
+cd maddock
+mise run build</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Binaries are produced under the working directory.</p>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <p>This page was built using the Antora default UI.</p>
+  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
+</footer>
+<script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
+<script async src="../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

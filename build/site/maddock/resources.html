@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Resources :: Maddock</title>
+    <link rel="canonical" href="https://madjlzz.github.io/maddock/maddock/resources.html">
+    <meta name="generator" content="Antora 3.1.14">
+    <link rel="stylesheet" href="../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://madjlzz.github.io/maddock">Maddock</a>
+      <button class="navbar-burger" aria-controls="topbar-nav" aria-expanded="false" aria-label="Toggle main menu">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/MadJlzz/maddock">GitHub</a>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="maddock" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <button class="nav-menu-toggle" aria-label="Toggle expand/collapse all" style="display: none"></button>
+    <h3 class="title"><a href="index.html">Maddock</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html">Overview</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="installation.html">Installation</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="architecture.html">Architecture</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">CLI reference</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="cli-agent.html">maddock-agent</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="cli-server.html">maddock-server</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="resources.html">Resources</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Maddock</span>
+    <span class="version"></span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="index.html">Maddock</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">Maddock</a></li>
+    <li><a href="resources.html">Resources</a></li>
+  </ul>
+</nav>
+<div class="edit-this-page"><a href="file:///home/jklaer/Work/github/maddock/docs/modules/ROOT/pages/resources.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Resources</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>A manifest is an ordered list of resources. Each resource has a <code>type</code>,
+a <code>name</code>, and a set of attributes. The engine processes them in the
+order they appear in the YAML.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">name: webserver
+
+resources:
+  - package:
+      nginx:
+        state: present
+
+  - file:
+      /etc/nginx/nginx.conf:
+        source: templates/nginx.conf.tmpl
+        owner: root
+        group: root
+        mode: "0644"
+        vars:
+          worker_connections: 1024
+
+  - service:
+      nginx:
+        state: running
+        enabled: true</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_package"><a class="anchor" href="#_package"></a>package</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Manages a system package via <code>apt</code> on Debian/Ubuntu or <code>dnf</code> on Fedora.
+The package manager is auto-detected at startup.</p>
+</div>
+<div class="paragraph">
+<p>Attributes:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>state</code></dt>
+<dd>
+<p><code>present</code> (install if missing) or <code>absent</code> (remove if present).</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- package:
+    htop:
+      state: present</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_file"><a class="anchor" href="#_file"></a>file</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Manages a file&#8217;s content, owner, group, and mode. Writes are atomic
+(temp file + rename) so readers never see a partially-written file.</p>
+</div>
+<div class="paragraph">
+<p>Attributes:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>content</code></dt>
+<dd>
+<p>Inline content. Mutually exclusive with <code>source</code>.</p>
+</dd>
+<dt class="hdlist1"><code>source</code></dt>
+<dd>
+<p>Path to a Go <code>text/template</code> file. Mutually exclusive with
+<code>content</code>. Rendered at parse time using <code>vars</code>.</p>
+</dd>
+<dt class="hdlist1"><code>vars</code></dt>
+<dd>
+<p>Template variables. Used only with <code>source</code>.</p>
+</dd>
+<dt class="hdlist1"><code>owner</code></dt>
+<dd>
+<p>Unix username. Required.</p>
+</dd>
+<dt class="hdlist1"><code>group</code></dt>
+<dd>
+<p>Unix group name. Required.</p>
+</dd>
+<dt class="hdlist1"><code>mode</code></dt>
+<dd>
+<p>Octal permission string, e.g. <code>"0644"</code>. Required.</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- file:
+    /etc/app.conf:
+      content: |
+        log_level=info
+        port=8080
+      owner: root
+      group: root
+      mode: "0644"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Templates receive <code>vars</code> as a flat map. Reference a variable with
+<code>{{ .key }}</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- file:
+    /etc/nginx/nginx.conf:
+      source: templates/nginx.conf.tmpl
+      owner: root
+      group: root
+      mode: "0644"
+      vars:
+        worker_connections: 1024</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_service"><a class="anchor" href="#_service"></a>service</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Manages a systemd unit.</p>
+</div>
+<div class="paragraph">
+<p>Attributes:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>state</code></dt>
+<dd>
+<p><code>running</code> (start) or <code>stopped</code> (stop).</p>
+</dd>
+<dt class="hdlist1"><code>enabled</code></dt>
+<dd>
+<p><code>true</code> (enable on boot) or <code>false</code> (disable).</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- service:
+    nginx:
+      state: running
+      enabled: true</code></pre>
+</div>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <p>This page was built using the Antora default UI.</p>
+  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
+</footer>
+<script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
+<script async src="../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

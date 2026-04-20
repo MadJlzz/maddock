@@ -1,6 +1,7 @@
 [tools]
 go = "1.26.2"
 golangci-lint = "2"
+npm = "11.12.1"
 protoc = "latest"
 protoc-gen-go = "latest"
 protoc-gen-go-grpc = "latest"
@@ -29,6 +30,14 @@ run = """
 VERSION="${GITHUB_SHA:-dev}"
 docker build -f Containerfile.server -t maddock-server:${VERSION} -t maddock-server:latest --build-arg VERSION=${VERSION} .
 """
+
+[tasks."docs:dev"]
+description = "Run the VitePress docs site in dev mode with hot reload"
+run = "npm install --silent && npm run docs:dev"
+
+[tasks."docs:build"]
+description = "Build the VitePress docs site into docs/.vitepress/dist/"
+run = "npm install --silent && npm run docs:build"
 
 [tasks.proto]
 description = "Generate Go code from protobuf definitions"

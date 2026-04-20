@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Architecture :: Maddock</title>
+    <link rel="canonical" href="https://madjlzz.github.io/maddock/maddock/architecture.html">
+    <meta name="generator" content="Antora 3.1.14">
+    <link rel="stylesheet" href="../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://madjlzz.github.io/maddock">Maddock</a>
+      <button class="navbar-burger" aria-controls="topbar-nav" aria-expanded="false" aria-label="Toggle main menu">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/MadJlzz/maddock">GitHub</a>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="maddock" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <button class="nav-menu-toggle" aria-label="Toggle expand/collapse all" style="display: none"></button>
+    <h3 class="title"><a href="index.html">Maddock</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html">Overview</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="installation.html">Installation</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="architecture.html">Architecture</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">CLI reference</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="cli-agent.html">maddock-agent</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="cli-server.html">maddock-server</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="resources.html">Resources</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Maddock</span>
+    <span class="version"></span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="index.html">Maddock</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">Maddock</a></li>
+    <li><a href="architecture.html">Architecture</a></li>
+  </ul>
+</nav>
+<div class="edit-this-page"><a href="file:///home/jklaer/Work/github/maddock/docs/modules/ROOT/pages/architecture.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Architecture</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Maddock has two components:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Agent</dt>
+<dd>
+<p>A long-lived daemon (or one-shot CLI) that runs on every target
+host. It knows how to check and apply resources against the local
+system.</p>
+</dd>
+<dt class="hdlist1">Server</dt>
+<dd>
+<p>An orchestration process that reads a central config,
+dispatches catalogs to agents over gRPC, and aggregates their reports.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_push_model"><a class="anchor" href="#_push_model"></a>Push model</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre>          YAML manifests
+                │
+                ▼
+       ┌─────────────────┐        gRPC        ┌──────────────────┐
+       │  maddock-server │ ─────ApplyCatalog──►│   maddock-agent  │
+       │                 │                     │                  │
+       │  reads config,  │ ◄───stream reports──│  runs engine     │
+       │  fans out       │                     │  against host    │
+       └─────────────────┘                     └──────────────────┘</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The server does not execute resources directly. It dials each agent,
+forwards the catalog (serialized as protobuf messages), and streams
+per-resource reports back to the operator.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_local_mode"><a class="anchor" href="#_local_mode"></a>Local mode</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The agent also runs without a server: <code>maddock-agent apply
+manifest.yaml</code> parses the YAML in process and runs the same engine used
+for gRPC pushes. This is the recommended path for trying Maddock out.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_resource_lifecycle"><a class="anchor" href="#_resource_lifecycle"></a>Resource lifecycle</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For every resource in a catalog, the engine runs two phases:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Check</dt>
+<dd>
+<p>Query the current state. Compare against the desired state.
+Produce zero or more <code>Difference</code> objects describing attributes that
+disagree.</p>
+</dd>
+<dt class="hdlist1">Apply</dt>
+<dd>
+<p>If differences were found (and <code>--dry-run</code> was not passed),
+converge the resource to the desired state.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>The <code>ResourceError</code> type carries the phase along with the error, so
+failures during check are distinguishable from failures during apply.
+Reports include the phase in JSON output.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_idempotency"><a class="anchor" href="#_idempotency"></a>Idempotency</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The core invariant: applying the same manifest twice produces changes
+on the first run and <code>OK</code> on the second. Every resource implementation
+enforces this through the check-then-apply pattern. <code>--dry-run</code> runs
+the check phase only.</p>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <p>This page was built using the Antora default UI.</p>
+  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
+</footer>
+<script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
+<script async src="../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

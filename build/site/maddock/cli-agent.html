@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>maddock-agent :: Maddock</title>
+    <link rel="canonical" href="https://madjlzz.github.io/maddock/maddock/cli-agent.html">
+    <meta name="generator" content="Antora 3.1.14">
+    <link rel="stylesheet" href="../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://madjlzz.github.io/maddock">Maddock</a>
+      <button class="navbar-burger" aria-controls="topbar-nav" aria-expanded="false" aria-label="Toggle main menu">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/MadJlzz/maddock">GitHub</a>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="maddock" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <button class="nav-menu-toggle" aria-label="Toggle expand/collapse all" style="display: none"></button>
+    <h3 class="title"><a href="index.html">Maddock</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html">Overview</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="installation.html">Installation</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="architecture.html">Architecture</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">CLI reference</span>
+<ul class="nav-list">
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="cli-agent.html">maddock-agent</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="cli-server.html">maddock-server</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="resources.html">Resources</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Maddock</span>
+    <span class="version"></span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="index.html">Maddock</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">Maddock</a></li>
+    <li>CLI reference</li>
+    <li><a href="cli-agent.html">maddock-agent</a></li>
+  </ul>
+</nav>
+<div class="edit-this-page"><a href="file:///home/jklaer/Work/github/maddock/docs/modules/ROOT/pages/cli-agent.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">maddock-agent</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The agent binary. Runs on every host that Maddock manages.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_global_flags"><a class="anchor" href="#_global_flags"></a>Global flags</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>--log-level</code></dt>
+<dd>
+<p><code>debug</code>, <code>info</code>, <code>warn</code>, or <code>error</code>. Default: <code>info</code>.
+Logs are written to stderr; primary output (reports) goes to stdout.</p>
+</dd>
+<dt class="hdlist1"><code>--version</code></dt>
+<dd>
+<p>Print the version and exit.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_apply"><a class="anchor" href="#_apply"></a>apply</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Apply a manifest to the local host.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">maddock-agent apply [--dry-run] [--output text|json] &lt;manifest.yaml&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Flags:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>--dry-run</code></dt>
+<dd>
+<p>Run the check phase only. Resources with pending changes
+are reported as <code>SKIPPED</code>. Exit code is <code>3</code> if any changes are pending.</p>
+</dd>
+<dt class="hdlist1"><code>--output</code></dt>
+<dd>
+<p><code>text</code> (default, human-readable) or <code>json</code> (machine-readable).</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>Exit codes:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>0</code></dt>
+<dd>
+<p>Catalog converged; all resources are <code>OK</code> or <code>CHANGED</code>.</p>
+</dd>
+<dt class="hdlist1"><code>2</code></dt>
+<dd>
+<p>One or more resources failed.</p>
+</dd>
+<dt class="hdlist1"><code>3</code></dt>
+<dd>
+<p><code>--dry-run</code> found pending changes.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_serve"><a class="anchor" href="#_serve"></a>serve</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Run the agent as a gRPC server, ready to accept catalogs pushed by
+<code>maddock-server</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">maddock-agent serve [--listen :9600]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Flags:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>--listen</code></dt>
+<dd>
+<p>Address and port to bind, default <code>:9600</code>.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>The server stays running until killed.</p>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <p>This page was built using the Antora default UI.</p>
+  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
+</footer>
+<script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
+<script async src="../_/js/vendor/highlight.js"></script>
+  </body>
+</html>
