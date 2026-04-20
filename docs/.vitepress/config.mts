@@ -35,6 +35,7 @@ export default defineConfig({
           { text: 'package', link: '/resources/package' },
           { text: 'file', link: '/resources/file' },
           { text: 'service', link: '/resources/service' },
+          { text: 'command', link: '/resources/command' },
         ],
       },
     ],

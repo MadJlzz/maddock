@@ -30,6 +30,7 @@ func manifestFiles(root string) []testcontainers.ContainerFile {
 		"stop-svc.yaml",
 		"create-file.yaml",
 		"create-file-template.yaml",
+		"run-command.yaml",
 	}
 	files := make([]testcontainers.ContainerFile, 0, len(manifests)+1)
 	for _, m := range manifests {

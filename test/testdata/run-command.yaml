@@ -1,0 +1,7 @@
+name: test-run-command
+
+resources:
+  - command:
+      create-marker:
+        command: "echo hello > /tmp/maddock-cmd-test"
+        creates: /tmp/maddock-cmd-test

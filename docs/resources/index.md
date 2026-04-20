@@ -49,6 +49,7 @@ Each list item is a single-key map whose key is the resource **type**:
 - [package](./package) — install or remove system packages via apt/dnf.
 - [file](./file) — manage file content, templates, ownership, and mode.
 - [service](./service) — start, stop, enable, or disable systemd units.
+- [command](./command) — run an arbitrary shell command with idempotency guards.
 
 ## Ordering and dependencies
 
