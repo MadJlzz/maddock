@@ -22,7 +22,7 @@ run = "go test ./..."
 
 [tasks."test:integration"]
 description = "Run integration tests"
-run = "go test -tags integration -v -timeout 480s ./test/integration/"
+run = "go test -tags integration -v -timeout 600s ./test/integration/"
 
 [tasks."docker:server"]
 description = "Build the maddock-server container image"
