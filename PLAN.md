@@ -42,12 +42,6 @@ Real-world manifests often need to branch on OS family, distribution, virtualiza
 
 ## Resource refinements
 
-### 5. Native `sysctl` resource (S)
-
-Workaroundable with `file` + `command` today. A native resource would own `/etc/sysctl.d/<name>.conf` and the reload, and report `CHANGED` with the specific keys that changed.
-
-**Sketch:** `values: map[string]string`, `filename?` (default `99-maddock.conf`). Apply writes atomically, runs `sysctl -p`.
-
 ### 7. `apt_repository` + `apt_key` (M)
 
 Common for installing third-party packages (Docker, Node, etc.). First-class resources would handle the signing-key dance, the `sources.list.d` file, and `apt-get update` in one unit. Today these are achievable via `file` + `command`, just awkwardly.

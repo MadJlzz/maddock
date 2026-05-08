@@ -42,27 +42,13 @@ resources:
 
   # =====================================================================
   # Sub-role: _common/sysctl_setup — kernel parameters
-  #
-  # MADDOCK-GAP: native sysctl resource. Today we write sysctl.d/ file
-  # and use command to reload. A native resource would handle both in
-  # one declarative unit and avoid the double-step.
   # =====================================================================
   - sysctl:
-      net.ipv6.conf.all.disable_ipv6:     { value: "1"}
-      net.ipv6.conf.lo.disable_ipv6:      { value: "1"}
-      net.ipv6.conf.default.disable_ipv6: { value: "1"}
-
-  - command:
-      reload-sysctl:
-        command: "/sbin/sysctl -p /etc/sysctl.d/99-maddock.conf"
-        # Reload only if at least one entry isn't currently applied.
-        # MADDOCK-GAP: notify/handlers. With a proper handler, this
-        # would run exactly when the sysctl file changes, not every
-        # time a value happens to be wrong.
-        unless: >-
-          test "$(sysctl -n net.ipv6.conf.all.disable_ipv6)" = "1" &&
-          test "$(sysctl -n net.ipv6.conf.default.disable_ipv6)" = "1" &&
-          test "$(sysctl -n net.ipv6.conf.lo.disable_ipv6)" = "1"
+      disable-ipv6:
+        values:
+          net.ipv6.conf.all.disable_ipv6:     "1"
+          net.ipv6.conf.lo.disable_ipv6:      "1"
+          net.ipv6.conf.default.disable_ipv6: "1"
 
   # =====================================================================
   # Sub-role: _common/hostname
