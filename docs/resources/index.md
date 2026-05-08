@@ -50,6 +50,7 @@ Each list item is a single-key map whose key is the resource **type**:
 - [file](./file) — manage file content, templates, ownership, and mode.
 - [service](./service) — start, stop, enable, or disable systemd units.
 - [command](./command) — run an arbitrary shell command with idempotency guards.
+- [hostname](./hostname) — set the system's static hostname via hostnamectl.
 
 ## Ordering and dependencies
 
