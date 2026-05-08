@@ -69,7 +69,7 @@ func TestHostnameResource_Apply(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cmder := util.MockCommander{Commands: map[string]util.MockCommand{
-				"hostnamectl --static":          {Output: tt.currentHostname, ExitCode: 0},
+				"hostnamectl --static":                       {Output: tt.currentHostname, ExitCode: 0},
 				"hostnamectl hostname " + tt.desiredHostname: {ExitCode: tt.setExitCode},
 			}}
 			hr := HostnameResource{name: tt.desiredHostname, cmder: cmder}
