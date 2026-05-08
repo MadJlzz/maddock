@@ -134,7 +134,7 @@ func TestSysctlResource_Apply_WritesAndReloads(t *testing.T) {
 	sr := newTestResource(t, values, nil)
 	cmder := util.MockCommander{Commands: map[string]util.MockCommand{
 		"sysctl --values net.ipv4.ip_forward": {Output: "0\n", ExitCode: 0},
-		"sysctl -p " + sr.path():               {ExitCode: 0},
+		"sysctl -p " + sr.path():              {ExitCode: 0},
 	}}
 	sr.cmder = cmder
 
@@ -152,7 +152,7 @@ func TestSysctlResource_Apply_ReloadFails(t *testing.T) {
 	sr := newTestResource(t, values, nil)
 	cmder := util.MockCommander{Commands: map[string]util.MockCommand{
 		"sysctl --values net.ipv4.ip_forward": {Output: "0\n", ExitCode: 0},
-		"sysctl -p " + sr.path():               {ExitCode: 1},
+		"sysctl -p " + sr.path():              {ExitCode: 1},
 	}}
 	sr.cmder = cmder
 
