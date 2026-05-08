@@ -81,17 +81,8 @@ resources:
   # MADDOCK-GAP: native hostname resource. Would wrap the set/stat pair
   # below into a single resource.
   # =====================================================================
-  - file:
-      /etc/hostname:
-        content: "outproxy-01\n"
-        owner: root
-        group: root
-        mode: "0644"
-
-  - command:
-      set-hostname:
-        command: "hostnamectl set-hostname outproxy-01"
-        unless: 'test "$(hostname)" = "outproxy-01"'
+  - hostname:
+      name: outproxy-01
 
   - file:
       /etc/hosts:
