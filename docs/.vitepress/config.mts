@@ -25,7 +25,7 @@ export default defineConfig({
         text: 'CLI Reference',
         items: [
           { text: 'maddock-agent', link: '/cli/agent' },
-          { text: 'maddock-server', link: '/cli/server' },
+          { text: 'maddock-controlplane', link: '/cli/controlplane' },
         ],
       },
       {

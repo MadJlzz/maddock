@@ -63,7 +63,7 @@ func newPushCmd() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&configPath, "config", "server.yaml", "path to server config")
+	cmd.Flags().StringVar(&configPath, "config", "controlplane.yaml", "path to control plane config")
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "check-only mode, no changes applied")
 	cmd.Flags().StringVar(&targetName, "target", "", "only push to this target hostname")
 	cmd.Flags().IntVar(&parallel, "parallel", 4, "max concurrent pushes")

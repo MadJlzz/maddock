@@ -15,13 +15,13 @@ type Target struct {
 }
 
 type Config struct {
-	Server struct {
+	ControlPlane struct {
 		Listen string `yaml:"listen"`
-	} `yaml:"server"`
+	} `yaml:"controlplane"`
 	Targets []Target `yaml:"targets"`
 }
 
-// loadConfig reads and parses the server config. Manifest paths that are
+// loadConfig reads and parses the control plane config. Manifest paths that are
 // not absolute are resolved relative to the config file's directory, so
 // configs remain portable regardless of the CWD where the binary runs.
 func loadConfig(path string) (*Config, error) {

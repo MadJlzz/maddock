@@ -5,9 +5,9 @@ Maddock has two components:
 - **Agent** — a long-lived daemon (or one-shot CLI) that runs on every
   target host. It knows how to check and apply resources against the
   local system.
-- **Server** — an orchestration process that reads a central config,
-  dispatches catalogs to agents over gRPC, and aggregates their
-  reports.
+- **Control plane** — an orchestration process that reads a central
+  config, dispatches catalogs to agents over gRPC, and aggregates
+  their reports.
 
 ## Push model
 
@@ -15,21 +15,21 @@ Maddock has two components:
           YAML manifests
                 │
                 ▼
-       ┌─────────────────┐        gRPC        ┌──────────────────┐
-       │  maddock-server │ ─────ApplyCatalog──▶│   maddock-agent  │
-       │                 │                     │                  │
-       │  reads config,  │ ◄───stream reports──│  runs engine     │
-       │  fans out       │                     │  against host    │
-       └─────────────────┘                     └──────────────────┘
+       ┌────────────────────┐        gRPC         ┌──────────────────┐
+       │maddock-controlplane│────ApplyCatalog────▶│   maddock-agent  │
+       │                    │                     │                  │
+       │  reads config,     │◄────stream reports──│  runs engine     │
+       │  fans out          │                     │  against host    │
+       └────────────────────┘                     └──────────────────┘
 ```
 
-The server does not execute resources directly. It dials each agent,
+The control plane does not execute resources directly. It dials each agent,
 forwards the catalog (serialized as protobuf messages), and streams
 per-resource reports back to the operator.
 
 ## Local mode
 
-The agent also runs without a server: `maddock-agent apply
+The agent also runs without the control plane: `maddock-agent apply
 manifest.yaml` parses the YAML in process and runs the same engine
 used for gRPC pushes. This is the recommended path for trying Maddock
 out.
@@ -65,8 +65,8 @@ A few choices that shape the project, and the reasoning behind them.
 Kubernetes, or Puppet Hiera. Good enough for declarative resource
 lists; we're not trying to invent a new language.
 
-**Execution model: push first.** The server dials the agent and
-pushes a catalog, rather than the agent polling. Push gives the
+**Execution model: push first.** The control plane dials the agent
+and pushes a catalog, rather than the agent polling. Push gives the
 operator immediate feedback (streamed reports) and makes ad-hoc
 "apply this manifest to these hosts now" a first-class operation. The
 architecture leaves room to add a pull mode later (agent periodically
@@ -88,5 +88,5 @@ change) more awkward. See [the roadmap](https://github.com/MadJlzz/maddock/blob/
 messages are protobuf structs, but each resource's attribute map is
 serialized as JSON bytes inside a `bytes attributes = 3` field. This
 keeps the protobuf schema stable as new resource types are added —
-the server doesn't need to be rebuilt when the agent grows a new
-resource.
+the control plane doesn't need to be rebuilt when the agent grows a
+new resource.

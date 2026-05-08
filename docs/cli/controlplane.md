@@ -1,6 +1,6 @@
-# maddock-server
+# maddock-controlplane
 
-The orchestration binary. Reads a server config that maps targets to
+The orchestration binary. Reads a control plane config that maps targets to
 manifests, then pushes each manifest to the corresponding agent over
 gRPC.
 
@@ -17,13 +17,13 @@ gRPC.
 Push catalogs to one or more agents.
 
 ```sh
-maddock-server push [--config server.yaml] [--dry-run] [--target HOST] [--parallel N] [--output text|json]
+maddock-controlplane push [--config controlplane.yaml] [--dry-run] [--target HOST] [--parallel N] [--output text|json]
 ```
 
 ### Flags
 
 `--config`
-: Path to the server config. Default: `server.yaml`.
+: Path to the control plane config. Default: `controlplane.yaml`.
 
 `--dry-run`
 : Run check-only against every agent; no changes applied.
@@ -45,10 +45,10 @@ Exit codes mirror the agent's, aggregated across hosts:
 - `2` — any host had a transport error or a failed resource.
 - `3` — any host had pending changes in dry-run mode.
 
-## Server config
+## Control plane config
 
 ```yaml
-server:
+controlplane:
   listen: ":9500"
 
 targets:

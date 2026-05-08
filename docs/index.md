@@ -17,7 +17,7 @@ features:
   - title: Declarative
     details: Describe packages, files, and services in YAML. Maddock handles idempotent convergence.
   - title: Push-based
-    details: Central server orchestrates agent hosts over gRPC with streamed per-resource reports.
+    details: Central control plane orchestrates agent hosts over gRPC with streamed per-resource reports.
   - title: Single static binary
     details: Agent ships as a Linux binary with no runtime dependencies. One curl to install.
 ---

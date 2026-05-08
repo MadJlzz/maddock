@@ -3,7 +3,7 @@ package maddock.v1;
 option go_package = "github.com/MadJlzz/maddock/internal/transport/proto";
 
 service AgentService {
-  // Server pushes a catalog; agent streams back per-resource reports.
+  // Control plane pushes a catalog; agent streams back per-resource reports.
   rpc ApplyCatalog(CatalogRequest) returns (stream ResourceReportMsg);
   rpc Ping(PingRequest) returns (PingResponse);
 }

@@ -20,7 +20,7 @@ type RawResource struct {
 
 // RawCatalog is the neutral representation of a manifest:
 // resources are not yet parsed into concrete Resource implementations.
-// It's used by the server binary to forward raw resources to agents
+// It's used by the control plane binary to forward raw resources to agents
 // without needing every resource type compiled in.
 type RawCatalog struct {
 	Name      string

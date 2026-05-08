@@ -37,7 +37,7 @@ reported as `SKIPPED`. Exit code is `3` if any changes are pending.
 ## serve
 
 Run the agent as a gRPC server, ready to accept catalogs pushed by
-`maddock-server`.
+`maddock-controlplane`.
 
 ```sh
 maddock-agent serve [--listen :9600]
@@ -48,4 +48,4 @@ maddock-agent serve [--listen :9600]
 `--listen`
 : Address and port to bind, default `:9600`.
 
-The server stays running until killed.
+The agent stays running until killed.

@@ -24,13 +24,13 @@ INSTALL_DIR=~/.local/bin curl -fsSL https://raw.githubusercontent.com/MadJlzz/ma
 
 Supported platforms: `linux/amd64`, `linux/arm64`.
 
-## Server
+## Control plane
 
-The server is distributed as a container image on GitHub Container
-Registry:
+The control plane is distributed as a container image on GitHub
+Container Registry:
 
 ```sh
-docker pull ghcr.io/madjlzz/maddock-server:latest
+docker pull ghcr.io/madjlzz/maddock-controlplane:latest
 ```
 
 Tag schemes available: `latest`, `MAJOR.MINOR`, and exact `MAJOR.MINOR.PATCH`.

@@ -16,7 +16,7 @@ func newServeCmd() *cobra.Command {
 	var listen string
 	cmd := &cobra.Command{
 		Use:   "serve",
-		Short: "Run the agent as a gRPC server, accepting catalogs pushed by maddock-server",
+		Short: "Run the agent as a gRPC server, accepting catalogs pushed by maddock-controlplane",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			lis, err := net.Listen("tcp", listen)
 			if err != nil {
@@ -24,7 +24,7 @@ func newServeCmd() *cobra.Command {
 			}
 
 			grpcServer := grpc.NewServer()
-			proto.RegisterAgentServiceServer(grpcServer, &transport.Server{Version: Version})
+			proto.RegisterAgentServiceServer(grpcServer, &transport.AgentServer{Version: Version})
 
 			slog.Info("maddock agent listening", "address", listen, "version", Version)
 			return grpcServer.Serve(lis)

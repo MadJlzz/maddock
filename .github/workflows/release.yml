@@ -39,8 +39,8 @@ jobs:
           files: dist/maddock-agent-linux-${{ matrix.arch }}
           fail_on_unmatched_files: true
 
-  server:
-    name: Build and push server image
+  controlplane:
+    name: Build and push control plane image
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.2
@@ -60,7 +60,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ghcr.io/${{ github.repository_owner }}/maddock-server
+          images: ghcr.io/${{ github.repository_owner }}/maddock-controlplane
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -70,7 +70,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: Containerfile.server
+          file: Containerfile.controlplane
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}

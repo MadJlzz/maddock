@@ -1,6 +1,6 @@
 # Maddock Roadmap
 
-This is the living roadmap — what's planned but not yet built. Anything that was in the original build plan (core abstractions, resource implementations, gRPC transport, server binary, JSON output, structured logging) is now shipped; see the code under `internal/` and the documentation at `docs/` for the current state.
+This is the living roadmap — what's planned but not yet built. Anything that was in the original build plan (core abstractions, resource implementations, gRPC transport, control plane binary, JSON output, structured logging) is now shipped; see the code under `internal/` and the documentation at `docs/` for the current state.
 
 The items below are ranked by how often they block real manifests, based on an exercise porting a non-trivial provisioning role to Maddock. Each entry has a rough design sketch and a size estimate (XS / S / M / L).
 
@@ -36,7 +36,7 @@ SSH key deployment per user. Depends on the `user` resource landing first.
 
 Real-world manifests often need to branch on OS family, distribution, virtualization type, etc. Today Maddock has no facts and no way to express conditions.
 
-**Sketch:** the `Ping` RPC already returns hostname + version — extend it to return `facts: {os_family, distribution, distribution_version, virtualization, kernel, arch, hostname}`. The server evaluates a per-resource `when:` expression against those facts before packaging the catalog for that target. Keep the expression language tiny (`os_family == "Debian"`) to avoid reimplementing Jinja.
+**Sketch:** the `Ping` RPC already returns hostname + version — extend it to return `facts: {os_family, distribution, distribution_version, virtualization, kernel, arch, hostname}`. The control plane evaluates a per-resource `when:` expression against those facts before packaging the catalog for that target. Keep the expression language tiny (`os_family == "Debian"`) to avoid reimplementing Jinja.
 
 ---
 

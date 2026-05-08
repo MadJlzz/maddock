@@ -20,12 +20,12 @@ var stateToProto = map[resource.State]proto.State{
 	resource.Skipped: proto.State_STATE_SKIPPED,
 }
 
-type Server struct {
+type AgentServer struct {
 	proto.UnimplementedAgentServiceServer
 	Version string
 }
 
-func (s *Server) ApplyCatalog(request *proto.CatalogRequest, g grpc.ServerStreamingServer[proto.ResourceReportMsg]) error {
+func (s *AgentServer) ApplyCatalog(request *proto.CatalogRequest, g grpc.ServerStreamingServer[proto.ResourceReportMsg]) error {
 	slog.Info("received ApplyCatalog",
 		"manifest", request.GetManifestName(),
 		"resources", len(request.GetResources()),
@@ -78,7 +78,7 @@ func (s *Server) ApplyCatalog(request *proto.CatalogRequest, g grpc.ServerStream
 	return nil
 }
 
-func (s *Server) Ping(_ context.Context, _ *proto.PingRequest) (*proto.PingResponse, error) {
+func (s *AgentServer) Ping(_ context.Context, _ *proto.PingRequest) (*proto.PingResponse, error) {
 	name, err := os.Hostname()
 	if err != nil {
 		return nil, err

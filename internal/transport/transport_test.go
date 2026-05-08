@@ -20,16 +20,16 @@ import (
 	"google.golang.org/grpc"
 )
 
-// setupServer starts a gRPC server on a random local port and returns a
+// setupAgentServer starts a gRPC server on a random local port and returns a
 // connected client. Both are cleaned up when the test ends.
-func setupServer(t *testing.T) *Client {
+func setupAgentServer(t *testing.T) *Client {
 	t.Helper()
 
 	lis, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 
 	grpcServer := grpc.NewServer()
-	proto.RegisterAgentServiceServer(grpcServer, &Server{Version: "test"})
+	proto.RegisterAgentServiceServer(grpcServer, &AgentServer{Version: "test"})
 
 	go func() { _ = grpcServer.Serve(lis) }()
 	t.Cleanup(func() { grpcServer.Stop() })
@@ -53,7 +53,7 @@ func currentOwnership(t *testing.T) (string, string) {
 }
 
 func TestPing(t *testing.T) {
-	client := setupServer(t)
+	client := setupAgentServer(t)
 
 	resp, err := client.Ping(context.Background())
 	require.NoError(t, err)
@@ -64,7 +64,7 @@ func TestPing(t *testing.T) {
 }
 
 func TestApplyCatalog_CreatesFile(t *testing.T) {
-	client := setupServer(t)
+	client := setupAgentServer(t)
 	owner, group := currentOwnership(t)
 
 	dir := t.TempDir()
@@ -95,7 +95,7 @@ func TestApplyCatalog_CreatesFile(t *testing.T) {
 }
 
 func TestApplyCatalog_DryRunDoesNotCreateFile(t *testing.T) {
-	client := setupServer(t)
+	client := setupAgentServer(t)
 	owner, group := currentOwnership(t)
 
 	dir := t.TempDir()
@@ -125,7 +125,7 @@ func TestApplyCatalog_DryRunDoesNotCreateFile(t *testing.T) {
 }
 
 func TestApplyCatalog_Idempotent(t *testing.T) {
-	client := setupServer(t)
+	client := setupAgentServer(t)
 	owner, group := currentOwnership(t)
 
 	dir := t.TempDir()
