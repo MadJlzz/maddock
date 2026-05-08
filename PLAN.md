@@ -48,12 +48,6 @@ Workaroundable with `file` + `command` today. A native resource would own `/etc/
 
 **Sketch:** `values: map[string]string`, `filename?` (default `99-maddock.conf`). Apply writes atomically, runs `sysctl -p`.
 
-### 6. Native `hostname` resource (XS)
-
-Wrapper around the current file + `hostnamectl` pair.
-
-**Sketch:** `name`. Check runs `hostname`. Apply runs `hostnamectl set-hostname <name>` and updates `/etc/hostname`.
-
 ### 7. `apt_repository` + `apt_key` (M)
 
 Common for installing third-party packages (Docker, Node, etc.). First-class resources would handle the signing-key dance, the `sources.list.d` file, and `apt-get update` in one unit. Today these are achievable via `file` + `command`, just awkwardly.

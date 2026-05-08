@@ -8,6 +8,7 @@ import (
 	_ "github.com/MadJlzz/maddock/internal/resources/command"
 	_ "github.com/MadJlzz/maddock/internal/resources/file"
 	_ "github.com/MadJlzz/maddock/internal/resources/hostname"
+	_ "github.com/MadJlzz/maddock/internal/resources/kernel"
 	_ "github.com/MadJlzz/maddock/internal/resources/pkg"
 	_ "github.com/MadJlzz/maddock/internal/resources/service"
 

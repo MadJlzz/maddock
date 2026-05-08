@@ -47,16 +47,10 @@ resources:
   # and use command to reload. A native resource would handle both in
   # one declarative unit and avoid the double-step.
   # =====================================================================
-  - file:
-      /etc/sysctl.d/99-maddock.conf:
-        content: |
-          # Managed by Maddock — do not edit
-          net.ipv6.conf.all.disable_ipv6 = 1
-          net.ipv6.conf.default.disable_ipv6 = 1
-          net.ipv6.conf.lo.disable_ipv6 = 1
-        owner: root
-        group: root
-        mode: "0644"
+  - sysctl:
+      net.ipv6.conf.all.disable_ipv6:     { value: "1"}
+      net.ipv6.conf.lo.disable_ipv6:      { value: "1"}
+      net.ipv6.conf.default.disable_ipv6: { value: "1"}
 
   - command:
       reload-sysctl:
