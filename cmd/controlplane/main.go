@@ -20,9 +20,11 @@ var Version = "dev"
 func newRootCmd() *cobra.Command {
 	var logLevel string
 	cmd := &cobra.Command{
-		Use:     "maddock-controlplane",
-		Short:   "Maddock control plane — orchestrates catalog pushes to agents",
-		Version: Version,
+		Use:           "maddock-controlplane",
+		Short:         "Maddock control plane — orchestrates catalog pushes to agents",
+		Version:       Version,
+		SilenceUsage:  true,
+		SilenceErrors: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			return logging.Setup(logLevel)
 		},
