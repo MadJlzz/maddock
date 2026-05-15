@@ -20,10 +20,6 @@ func TestRoundTripKey(t *testing.T) {
 	assert.True(t, decodedKey.Equal(key))
 }
 
-//func TestRoundTripCert(t *testing.T) {
-//
-//}
-
 func TestDecodeKeyPEM_Errors(t *testing.T) {
 	wrongType := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: []byte("ignored")})
 	malformed := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: []byte("not pkcs8")})

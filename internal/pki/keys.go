@@ -22,7 +22,7 @@ func EncodeCertPEM(der []byte) []byte {
 func EncodeKeyPEM(key *ecdsa.PrivateKey) ([]byte, error) {
 	kb, err := x509.MarshalPKCS8PrivateKey(key)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("pki: marshal private key: %w", err)
 	}
 	return pem.EncodeToMemory(&pem.Block{Bytes: kb, Type: "PRIVATE KEY"}), nil
 }
@@ -38,7 +38,7 @@ func DecodeCertPEM(pemBytes []byte) (*x509.Certificate, error) {
 
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("pki: parse certificate: %w", err)
 	}
 
 	return cert, nil
@@ -55,12 +55,12 @@ func DecodeKeyPEM(pemBytes []byte) (*ecdsa.PrivateKey, error) {
 
 	key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("pki: parse private key: %w", err)
 	}
 
 	ecdsaKey, ok := key.(*ecdsa.PrivateKey)
 	if !ok {
-		return nil, errors.New("private key is of the wrong type")
+		return nil, fmt.Errorf("pki: expected ECDSA private key, got %T", key)
 	}
 
 	return ecdsaKey, nil
