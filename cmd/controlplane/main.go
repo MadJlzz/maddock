@@ -19,6 +19,7 @@ var Version = "dev"
 
 func newRootCmd() *cobra.Command {
 	var logLevel string
+	stateDir, _ := defaultStateDir()
 	cmd := &cobra.Command{
 		Use:           "maddock-controlplane",
 		Short:         "Maddock control plane — orchestrates catalog pushes to agents",
@@ -26,10 +27,18 @@ func newRootCmd() *cobra.Command {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			if stateDir == "" {
+				d, err := defaultStateDir()
+				if err != nil {
+					return err
+				}
+				stateDir = d
+			}
 			return logging.Setup(logLevel)
 		},
 	}
 	cmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "log level: debug|info|warn|error")
+	cmd.PersistentFlags().StringVar(&stateDir, "state-dir", stateDir, "path to control plane state directory")
 	cmd.AddCommand(newPushCmd())
 	cmd.AddCommand(newInitCmd())
 	return cmd

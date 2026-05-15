@@ -35,22 +35,17 @@ func defaultStateDir() (string, error) {
 }
 
 func newInitCmd() *cobra.Command {
-	stateDir, _ := defaultStateDir()
 	cmd := &cobra.Command{
 		Use:   "init",
 		Short: "Initialize a new control plane",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if stateDir == "" {
-				d, err := defaultStateDir()
-				if err != nil {
-					return err
-				}
-				stateDir = d
+			stateDir, err := cmd.Flags().GetString("state-dir")
+			if err != nil {
+				return err
 			}
 			return runInit(stateDir)
 		},
 	}
-	cmd.Flags().StringVar(&stateDir, "state-dir", stateDir, "path to control plane state directory")
 	return cmd
 }
 
