@@ -2,6 +2,7 @@ package transport
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,9 +14,8 @@ import (
 	"github.com/MadJlzz/maddock/internal/report"
 	"github.com/MadJlzz/maddock/internal/resource"
 	"github.com/MadJlzz/maddock/internal/transport/proto"
-
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 )
 
 var protoToState = map[proto.State]resource.State{
@@ -32,9 +32,9 @@ type Client struct {
 }
 
 // NewClient dials the agent at the given address.
-func NewClient(address string) (*Client, error) {
+func NewClient(address string, tlsCfg *tls.Config) (*Client, error) {
 	slog.Debug("dialing agent", "address", address)
-	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(credentials.NewTLS(tlsCfg)))
 	if err != nil {
 		return nil, fmt.Errorf("dialing %s: %w", address, err)
 	}

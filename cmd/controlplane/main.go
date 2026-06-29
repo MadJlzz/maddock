@@ -41,6 +41,7 @@ func newRootCmd() *cobra.Command {
 	cmd.PersistentFlags().StringVar(&stateDir, "state-dir", stateDir, "path to control plane state directory")
 	cmd.AddCommand(newPushCmd())
 	cmd.AddCommand(newInitCmd())
+	cmd.AddCommand(newCertCmd())
 	return cmd
 }
 
