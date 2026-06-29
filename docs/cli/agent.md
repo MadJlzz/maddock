@@ -39,8 +39,17 @@ reported as `SKIPPED`. Exit code is `3` if any changes are pending.
 Run the agent as a gRPC server, ready to accept catalogs pushed by
 `maddock-controlplane`.
 
+The wire is always mutual TLS — there is no plaintext mode. The agent
+presents its own certificate and **requires** the control plane to
+present a certificate signed by the same CA, so the three certificate
+flags are all mandatory.
+
 ```sh
-maddock-agent serve [--listen :9600]
+maddock-agent serve \
+  --listen :9600 \
+  --ca-cert ./ca.crt \
+  --cert ./web-1.crt \
+  --key ./web-1.key
 ```
 
 ### Flags
@@ -48,4 +57,17 @@ maddock-agent serve [--listen :9600]
 `--listen`
 : Address and port to bind, default `:9600`.
 
-The agent stays running until killed.
+`--ca-cert`
+: Path to the CA certificate. Used as the trust anchor to verify the
+control plane's client certificate. **Required.**
+
+`--cert`
+: Path to the agent's own server certificate. **Required.**
+
+`--key`
+: Path to the agent's own private key. **Required.**
+
+The certificate, key, and CA are produced on the control plane with
+`maddock-controlplane cert issue` and copied to the host (see
+[maddock-controlplane](controlplane.md)). The agent stays running until
+killed.

@@ -48,6 +48,26 @@ Common for installing third-party packages (Docker, Node, etc.). First-class res
 
 ---
 
+## Authentication
+
+The push path is now mutual TLS (TLS 1.3, no plaintext fallback): a single CA anchors trust, the control plane issues its own certificate at `init`, and agent certificates are minted with `cert issue`. See [docs/architecture.md](docs/architecture.md#security-mtls-on-the-push-path). Certificate distribution is still manual; the follow-ups below close that gap.
+
+### Agent join flow (L)
+
+Replace the manual issue-and-`scp` step with an automated enrollment: the control plane runs a bootstrap listener, the operator hands a target a short-lived token, and the agent calls `join` to obtain its certificate and register itself. This removes the manual `cert issue` stopgap.
+
+### CA-hash pinning for join (S)
+
+A `--ca-cert-hash sha256:<hex>` flag on `agent join` so the first contact isn't pure trust-on-first-use. The operator reads the pin from the control plane's startup log.
+
+### Agent certificate rotation (M)
+
+Certificates issued today are long-lived and there's no renewal path. Needs a re-issue/re-key flow that doesn't require taking the agent down.
+
+### Certificate revocation (M)
+
+No way to revoke a compromised agent certificate short of rotating the CA. Needs a CRL or short-lived certs with renewal.
+
 ## Deferred
 
 Items we acknowledge but aren't prioritizing. Workarounds exist; implementation cost is high relative to value.

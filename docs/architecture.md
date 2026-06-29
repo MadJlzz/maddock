@@ -15,7 +15,7 @@ Maddock has two components:
           YAML manifests
                 │
                 ▼
-       ┌────────────────────┐        gRPC         ┌──────────────────┐
+       ┌────────────────────┐    gRPC over mTLS   ┌──────────────────┐
        │maddock-controlplane│────ApplyCatalog────▶│   maddock-agent  │
        │                    │                     │                  │
        │  reads config,     │◄────stream reports──│  runs engine     │
@@ -26,6 +26,37 @@ Maddock has two components:
 The control plane does not execute resources directly. It dials each agent,
 forwards the catalog (serialized as protobuf messages), and streams
 per-resource reports back to the operator.
+
+## Security: mTLS on the push path
+
+The push connection is always mutual TLS (TLS 1.3 minimum) — there is no
+plaintext mode and no `--insecure` escape hatch. Both sides authenticate:
+
+- The **agent** presents a server certificate and requires the control
+  plane to present a client certificate signed by the same CA
+  (`tls.RequireAndVerifyClientCert`).
+- The **control plane** verifies the agent's certificate against that CA
+  and checks the certificate SAN against the target's configured
+  `hostname` (not the dialed `address`, which is typically an IP). An
+  agent presenting a certificate for the wrong hostname is rejected.
+
+### Trust model
+
+A single CA, created by `maddock-controlplane init`, anchors trust:
+
+- **CA** (`ca.crt` / `ca.key`) — lives in the control plane state
+  directory. The private key never leaves the control plane.
+- **Control plane certificate** (`controlplane.crt`) — issued at `init`,
+  used as the client certificate when pushing.
+- **Agent certificates** — issued per host with
+  `maddock-controlplane cert issue --hostname <host>`. The CN/SAN is the
+  hostname; the keypair is generated on the control plane and copied to
+  the target.
+
+Today certificate issuance and distribution are **manual** (issue on the
+control plane, `scp` to the host). An automated agent join flow is
+planned to replace the manual copy step; see
+[the roadmap](https://github.com/MadJlzz/maddock/blob/main/PLAN.md).
 
 ## Local mode
 
