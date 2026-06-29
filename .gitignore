@@ -136,3 +136,4 @@ fabric.properties
 node_modules/
 docs/.vitepress/dist/
 docs/.vitepress/cache/
+auth-plan/

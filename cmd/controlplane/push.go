@@ -2,15 +2,19 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"slices"
 	"sync"
 
 	"github.com/MadJlzz/maddock/internal/catalog"
+	"github.com/MadJlzz/maddock/internal/pki"
 	"github.com/MadJlzz/maddock/internal/report"
 	"github.com/MadJlzz/maddock/internal/resource"
 	"github.com/MadJlzz/maddock/internal/transport"
@@ -41,6 +45,22 @@ func newPushCmd() *cobra.Command {
 				return err
 			}
 
+			stateDir, err := cmd.Flags().GetString("state-dir")
+			if err != nil {
+				return err
+			}
+			cpCert, err := tls.LoadX509KeyPair(
+				filepath.Join(stateDir, ControlPlaneCertName),
+				filepath.Join(stateDir, ControlPlaneKeyName),
+			)
+			if err != nil {
+				return fmt.Errorf("loading control plane keypair: %w", err)
+			}
+			caPool, err := pki.LoadCertPool(filepath.Join(stateDir, pki.CertificateAuthorityCertName))
+			if err != nil {
+				return fmt.Errorf("loading CA cert: %w", err)
+			}
+
 			targets := cfg.Targets
 			if targetName != "" {
 				targets = slices.DeleteFunc(slices.Clone(cfg.Targets), func(t Target) bool {
@@ -55,7 +75,7 @@ func newPushCmd() *cobra.Command {
 				parallel = 1
 			}
 
-			results := pushAll(cmd.Context(), targets, dryRun, parallel)
+			results := pushAll(cmd.Context(), targets, cpCert, caPool, dryRun, parallel)
 			if err := writeResults(cmd.OutOrStdout(), results, output); err != nil {
 				return err
 			}
@@ -74,7 +94,7 @@ func newPushCmd() *cobra.Command {
 // pushAll fans out one goroutine per target, bounded by a semaphore.
 // Results are written into a pre-allocated slice at the target's index so
 // output order matches the config order regardless of completion order.
-func pushAll(ctx context.Context, targets []Target, dryRun bool, parallel int) []pushResult {
+func pushAll(ctx context.Context, targets []Target, cpCert tls.Certificate, caPool *x509.CertPool, dryRun bool, parallel int) []pushResult {
 	results := make([]pushResult, len(targets))
 	sem := make(chan struct{}, parallel)
 	var wg sync.WaitGroup
@@ -85,14 +105,14 @@ func pushAll(ctx context.Context, targets []Target, dryRun bool, parallel int) [
 			defer wg.Done()
 			sem <- struct{}{}
 			defer func() { <-sem }()
-			results[i] = pushToTarget(ctx, t, dryRun)
+			results[i] = pushToTarget(ctx, t, cpCert, caPool, dryRun)
 		}(i, t)
 	}
 	wg.Wait()
 	return results
 }
 
-func pushToTarget(ctx context.Context, t Target, dryRun bool) pushResult {
+func pushToTarget(ctx context.Context, t Target, cpCert tls.Certificate, caPool *x509.CertPool, dryRun bool) pushResult {
 	log := slog.With("hostname", t.Hostname, "address", t.Address)
 	log.Info("pushing to target", "manifest", t.Manifest, "dry_run", dryRun)
 	result := pushResult{target: t}
@@ -111,7 +131,14 @@ func pushToTarget(ctx context.Context, t Target, dryRun bool) pushResult {
 		return result
 	}
 
-	client, err := transport.NewClient(t.Address)
+	tlsCfg := &tls.Config{
+		Certificates: []tls.Certificate{cpCert},
+		RootCAs:      caPool,
+		ServerName:   t.Hostname, // verify the agent's cert SAN against the hostname, not the dialed address
+		MinVersion:   tls.VersionTLS13,
+	}
+
+	client, err := transport.NewClient(t.Address, tlsCfg)
 	if err != nil {
 		result.err = err
 		log.Error("push failed", "error", err)
