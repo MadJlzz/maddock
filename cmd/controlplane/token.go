@@ -17,6 +17,7 @@ func newTokenCmd() *cobra.Command {
 	}
 	cmd.AddCommand(newTokenCreateCmd())
 	cmd.AddCommand(newTokenListCmd())
+	cmd.AddCommand(newTokenRevokeCmd())
 	return cmd
 }
 
@@ -94,6 +95,30 @@ func newTokenListCmd() *cobra.Command {
 				)
 			}
 			return tw.Flush()
+		},
+	}
+	return cmd
+}
+
+func newTokenRevokeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "revoke <id>",
+		Short: "Revoke a bootstrap token",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			stateDir, err := cmd.Flags().GetString("state-dir")
+			if err != nil {
+				return err
+			}
+			ts, err := token.NewStore(stateDir)
+			if err != nil {
+				return err
+			}
+			if err := ts.Revoke(args[0]); err != nil {
+				return err
+			}
+			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "revoked token %s\n", args[0])
+			return nil
 		},
 	}
 	return cmd
