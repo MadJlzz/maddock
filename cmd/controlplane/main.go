@@ -42,12 +42,13 @@ func newRootCmd() *cobra.Command {
 	cmd.AddCommand(newPushCmd())
 	cmd.AddCommand(newInitCmd())
 	cmd.AddCommand(newCertCmd())
+	cmd.AddCommand(newTokenCmd())
 	return cmd
 }
 
 func main() {
 	if err := newRootCmd().Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		_, _ = fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
