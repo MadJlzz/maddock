@@ -32,12 +32,12 @@ type Token struct {
 // (which the operator must capture - it is not recoverable) and the Token
 // struct ready to persist.
 func Generate(ttl time.Duration, uses int, desc string) (raw string, t Token, err error) {
-	rawId := make([]byte, 3)
+	rawId := make([]byte, idHexLen/2)
 	if _, err = rand.Read(rawId); err != nil {
 		return "", Token{}, err
 	}
 
-	rawSecret := make([]byte, 8)
+	rawSecret := make([]byte, secretHexLen/2)
 	if _, err = rand.Read(rawSecret); err != nil {
 		return "", Token{}, err
 	}
@@ -87,9 +87,22 @@ func Parse(raw string) (id, secret string, err error) {
 }
 
 // MatchAndConsume checks whether secret matches the bcrypt hash, the
-// token isn't expired, and uses_remaining > 0. On success it decrements
-// UsesRemaining and returns (true, false). On failure it returns
-// (false, expired).
+// token isn't expired, and uses remain. RemainingUses == -1 means
+// unlimited; any other value > 0 is decremented on success. On success
+// it returns (true, false). On failure it returns (false, expired).
 func (t *Token) MatchAndConsume(secret string, now time.Time) (ok bool, expired bool) {
-	return false, false
+	if err := bcrypt.CompareHashAndPassword(t.SecretHash, []byte(secret)); err != nil {
+		return false, false
+	}
+	if now.After(t.ExpiresAt) {
+		return false, true
+	}
+	if t.RemainingUses == -1 {
+		return true, false
+	}
+	if t.RemainingUses <= 0 {
+		return false, false
+	}
+	t.RemainingUses--
+	return true, false
 }
