@@ -9,7 +9,7 @@ require (
 	github.com/testcontainers/testcontainers-go v0.44.0
 	golang.org/x/crypto v0.55.0
 	google.golang.org/grpc v1.83.2
-	google.golang.org/protobuf v1.36.11
+	google.golang.org/protobuf v1.36.12
 	gopkg.in/yaml.v3 v3.0.1
 )
 
