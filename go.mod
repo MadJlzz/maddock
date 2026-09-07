@@ -1,13 +1,13 @@
 module github.com/MadJlzz/maddock
 
-go 1.26
+go 1.26.0
 
 require (
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1
 	github.com/testcontainers/testcontainers-go v0.44.0
-	golang.org/x/crypto v0.55.0
+	golang.org/x/crypto v0.56.0
 	google.golang.org/grpc v1.83.2
 	google.golang.org/protobuf v1.36.12
 	gopkg.in/yaml.v3 v3.0.1
