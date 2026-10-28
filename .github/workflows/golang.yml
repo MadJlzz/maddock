@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7.0.1
 
-      - uses: jdx/mise-action@v5.2.0
+      - uses: jdx/mise-action@v5.2.3
 
       - name: Build
         run: mise run build
